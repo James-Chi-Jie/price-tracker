@@ -10,7 +10,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
 async function readJdSearchResults() {
   await waitForSearchResults();
-  const items = [...document.querySelectorAll("li.gl-item, .gl-item, [data-sku]")];
+  const items = [...document.querySelectorAll("[data-sku], li.gl-item, .gl-item")];
   const seen = new Set();
   const products = [];
 
@@ -35,12 +35,19 @@ async function waitForSearchResults() {
 }
 
 function parseSearchItem(item) {
+  const sku = item.getAttribute("data-sku") || "";
   const linkNode = item.querySelector("a.p-img, .p-name a, a[href*='/item.jd.com/']");
-  const url = normalizeProductUrl(linkNode?.href || "");
-  const id = item.getAttribute("data-sku") || extractProductId(url);
-  const title = (
-    item.querySelector(".p-name em, .p-name, .p-img")?.textContent || ""
-  ).replace(/\s+/g, " ").trim();
+  const linkedUrl = normalizeProductUrl(linkNode?.href || "");
+  const id = sku || extractProductId(linkedUrl);
+  // The current JD layout does not expose a normal product anchor on every
+  // card, but it does expose data-sku. Build the detail URL from that value.
+  const url = id ? `https://item.jd.com/${id}.html` : linkedUrl;
+  const titleNode = item.querySelector(
+    "[class*='_card_'], [class*='_info_'], .p-name em, .p-name, .p-img"
+  );
+  let title = (titleNode?.textContent || "").replace(/\s+/g, " ").trim();
+  // New cards often put the displayed price after the title in the same node.
+  title = title.split(/[¥￥]/)[0].trim();
   const price = extractSearchPrice(item);
 
   if (!id || !url || !title || !Number.isFinite(price) || price <= 0) return null;
@@ -49,6 +56,7 @@ function parseSearchItem(item) {
 
 function extractSearchPrice(item) {
   const selectors = [
+    "[class*='_price_']",
     ".p-price .price",
     ".p-price strong",
     ".p-price"
