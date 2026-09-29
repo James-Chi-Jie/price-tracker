@@ -23,6 +23,20 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "START_PRODUCT_SELECTION") {
+    startProductSelection(message.keyword, message.threshold)
+      .then((result) => sendResponse({ ok: true, result }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message?.type === "CREATE_MONITOR") {
+    createMonitorFromSelection(message.productIds)
+      .then((result) => sendResponse({ ok: true, result }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
   if (message?.type === "CHECK_ONE") {
     checkMonitor(message.id)
       .then((result) => sendResponse({ ok: true, result }))
@@ -62,17 +76,37 @@ async function checkAllMonitors() {
   }
 }
 
-async function checkMonitor(id) {
-  const { monitors } = await chrome.storage.local.get({ monitors: [] });
-  const monitor = monitors.find((item) => item.id === id);
-  if (!monitor) throw new Error("监控任务不存在");
+async function startProductSelection(keyword, threshold) {
+  const normalizedKeyword = String(keyword || "").trim();
+  const normalizedThreshold = Number(threshold);
+  if (!normalizedKeyword) throw new Error("监控关键词不能为空");
+  if (!Number.isFinite(normalizedThreshold) || normalizedThreshold <= 0) {
+    throw new Error("请输入有效的目标价格");
+  }
 
-  const adapter = self.PriceAdapters?.[monitor.platform || "jd"];
-  if (!adapter) throw new Error("暂不支持该平台");
-  if (!monitor.keyword?.trim()) throw new Error("监控关键词不能为空");
+  const products = await searchProducts(normalizedKeyword);
+  if (!products.length) {
+    throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
+  }
+
+  await chrome.storage.local.set({
+    selectionDraft: {
+      keyword: normalizedKeyword,
+      threshold: normalizedThreshold,
+      products,
+      createdAt: Date.now()
+    }
+  });
+  await chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true });
+  return { count: products.length };
+}
+
+async function searchProducts(keyword) {
+  const adapter = self.PriceAdapters?.jd;
+  if (!adapter) throw new Error("暂不支持京东");
 
   const tab = await chrome.tabs.create({
-    url: adapter.buildSearchUrl(monitor.keyword.trim()),
+    url: adapter.buildSearchUrl(keyword),
     active: false
   });
   try {
@@ -82,58 +116,121 @@ async function checkMonitor(id) {
       type: "READ_SEARCH_RESULTS",
       platform: adapter.id
     });
-
     if (!Array.isArray(response?.products)) {
       throw new Error(response?.error || "未能读取京东搜索结果");
     }
-
-    if (!response.products.length) {
-      throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
-    }
-
-    const previousMatches = monitor.matches || {};
-    const nextMatches = { ...previousMatches };
-    const newlyMatched = [];
-
-    for (const product of response.products) {
-      const isBelow = product.price < Number(monitor.threshold);
-      const previous = previousMatches[product.id] || {};
-      nextMatches[product.id] = {
-        title: product.title,
-        price: product.price,
-        url: product.url,
-        wasBelowThreshold: isBelow,
-        lastSeenAt: Date.now()
-      };
-      if (isBelow && previous.wasBelowThreshold !== true) {
-        newlyMatched.push(product);
-      }
-    }
-
-    const eligibleProducts = response.products
-      .filter((product) => product.price < Number(monitor.threshold))
-      .sort((left, right) => left.price - right.price);
-    const patch = {
-      lastCheckedAt: Date.now(),
-      lastError: "",
-      matches: nextMatches,
-      lowestPrice: response.products.reduce(
-        (lowest, product) => Math.min(lowest, product.price),
-        Number.POSITIVE_INFINITY
-      ),
-      eligibleCount: eligibleProducts.length,
-      title: monitor.keyword
-    };
-
-    await updateMonitor(monitor.id, patch);
-    if (newlyMatched.length) {
-      await notifyMatches(monitor, newlyMatched.sort((left, right) => left.price - right.price));
-    }
-
-    return { ...monitor, ...patch, notified: newlyMatched.length > 0 };
+    return response.products;
   } finally {
     await chrome.tabs.remove(tab.id).catch(() => {});
   }
+}
+
+async function createMonitorFromSelection(productIds) {
+  const { selectionDraft } = await chrome.storage.local.get({ selectionDraft: null });
+  if (!selectionDraft?.products?.length) throw new Error("商品选择已过期，请重新搜索");
+
+  const ids = new Set((Array.isArray(productIds) ? productIds : []).map(String));
+  const selectedProducts = selectionDraft.products.filter((product) => ids.has(String(product.id)));
+  if (!selectedProducts.length) throw new Error("请至少选择一个商品");
+
+  const monitor = {
+    id: crypto.randomUUID(),
+    platform: "jd",
+    keyword: selectionDraft.keyword,
+    threshold: selectionDraft.threshold,
+    selectedProducts,
+    matches: {},
+    lowestPrice: null,
+    eligibleCount: 0,
+    lastCheckedAt: null,
+    lastError: ""
+  };
+  const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  monitors.push(monitor);
+  await chrome.storage.local.set({ monitors, selectionDraft: null });
+  try {
+    const result = await checkMonitor(monitor.id);
+    return { monitor: result };
+  } catch (error) {
+    await updateMonitor(monitor.id, {
+      lastCheckedAt: Date.now(),
+      lastError: error.message
+    });
+    return { monitor: { ...monitor, lastCheckedAt: Date.now(), lastError: error.message } };
+  }
+}
+
+async function checkMonitor(id) {
+  const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  const monitor = monitors.find((item) => item.id === id);
+  if (!monitor) throw new Error("监控任务不存在");
+
+  const adapter = self.PriceAdapters?.[monitor.platform || "jd"];
+  if (!adapter) throw new Error("暂不支持该平台");
+  if (!monitor.keyword?.trim()) throw new Error("监控关键词不能为空");
+
+  const responseProducts = await searchProducts(monitor.keyword.trim());
+  if (!responseProducts.length) {
+    throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
+  }
+
+  const selectedProducts = Array.isArray(monitor.selectedProducts)
+    ? monitor.selectedProducts
+    : [];
+  const selectedIds = new Set(selectedProducts.map((product) => String(product.id)));
+  const products = selectedProducts.length
+    ? responseProducts.filter((product) => selectedIds.has(String(product.id)))
+    : responseProducts;
+
+  if (!products.length) {
+    throw new Error(
+      selectedProducts.length
+        ? "选中的商品不在当前搜索结果第一页，暂时无法确认价格"
+        : "未读取到商品结果，可能是页面未加载或触发了平台验证"
+    );
+  }
+
+  const previousMatches = monitor.matches || {};
+  const nextMatches = { ...previousMatches };
+  const newlyMatched = [];
+
+  for (const product of products) {
+    const isBelow = product.price < Number(monitor.threshold);
+    const previous = previousMatches[product.id] || {};
+    nextMatches[product.id] = {
+      title: product.title,
+      price: product.price,
+      url: product.url,
+      wasBelowThreshold: isBelow,
+      lastSeenAt: Date.now()
+    };
+    if (isBelow && previous.wasBelowThreshold !== true) {
+      newlyMatched.push(product);
+    }
+  }
+
+  const eligibleProducts = products
+    .filter((product) => product.price < Number(monitor.threshold))
+    .sort((left, right) => left.price - right.price);
+  const patch = {
+    lastCheckedAt: Date.now(),
+    lastError: "",
+    matches: nextMatches,
+    lowestPrice: products.reduce(
+      (lowest, product) => Math.min(lowest, product.price),
+      Number.POSITIVE_INFINITY
+    ),
+    eligibleCount: eligibleProducts.length,
+    title: monitor.keyword,
+    missingSelectedCount: selectedProducts.length - products.length
+  };
+
+  await updateMonitor(monitor.id, patch);
+  if (newlyMatched.length) {
+    await notifyMatches(monitor, newlyMatched.sort((left, right) => left.price - right.price));
+  }
+
+  return { ...monitor, ...patch, notified: newlyMatched.length > 0 };
 }
 
 async function notifyMatches(monitor, products) {

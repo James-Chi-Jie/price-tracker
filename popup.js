@@ -12,25 +12,18 @@ form.addEventListener("submit", async (event) => {
   if (!keyword) return showMessage("请输入商品关键词");
   if (!Number.isFinite(threshold) || threshold <= 0) return showMessage("请输入有效的目标价格");
 
-  const { monitors } = await chrome.storage.local.get({ monitors: [] });
-  const monitor = {
-    id: crypto.randomUUID(),
-    platform: "jd",
+  showMessage("正在读取京东搜索结果…");
+  const result = await chrome.runtime.sendMessage({
+    type: "START_PRODUCT_SELECTION",
     keyword,
-    threshold,
-    matches: {},
-    lowestPrice: null,
-    eligibleCount: 0,
-    lastCheckedAt: null,
-    lastError: ""
-  };
-  monitors.push(monitor);
-  await chrome.storage.local.set({ monitors });
-  form.reset();
-  showMessage("已添加，正在执行首次检查…");
-  const result = await chrome.runtime.sendMessage({ type: "CHECK_ONE", id: monitor.id });
-  await render();
-  showMessage(result?.ok ? "检查完成" : `检查失败：${result?.error || "未知错误"}`);
+    threshold
+  });
+  if (result?.ok) {
+    form.reset();
+    showMessage("已打开商品选择页");
+  } else {
+    showMessage(`搜索失败：${result?.error || "未知错误"}`);
+  }
 });
 
 async function render() {
@@ -52,11 +45,24 @@ async function render() {
       ? new Date(monitor.lastCheckedAt).toLocaleString()
       : "尚未检查";
     const error = monitor.lastError ? `<p class="error">${escapeHtml(monitor.lastError)}</p>` : "";
+    const selectedProducts = Array.isArray(monitor.selectedProducts)
+      ? monitor.selectedProducts
+      : [];
+    const scope = selectedProducts.length
+      ? `已选 ${selectedProducts.length} 个具体商品`
+      : "旧版任务：匹配该关键词下的全部商品";
+    const selectedSummary = selectedProducts.length
+      ? selectedProducts.slice(0, 2).map((product) => escapeHtml(product.title)).join("；")
+        + (selectedProducts.length > 2 ? "…" : "")
+      : "";
 
     card.innerHTML = `
       <p class="title">京东：${escapeHtml(monitor.keyword)}</p>
+      <p class="scope">${scope}</p>
+      ${selectedSummary ? `<p class="products-summary">${selectedSummary}</p>` : ""}
       <p>目标：¥${Number(monitor.threshold).toFixed(2)}　最低：${lowestPrice}</p>
       <p>低价商品：${Number(monitor.eligibleCount || 0)} 个</p>
+      ${monitor.missingSelectedCount ? `<p class="error">有 ${monitor.missingSelectedCount} 个商品暂不在搜索结果第一页</p>` : ""}
       <p class="muted">上次检查：${escapeHtml(checked)}</p>
       ${error}
       <div class="actions">

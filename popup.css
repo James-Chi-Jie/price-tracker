@@ -38,6 +38,8 @@ button.danger { background: #e5484d; }
   background: #fff;
 }
 .title { margin: 0 0 5px; font-weight: 600; }
+.scope { margin: 0 0 5px; color: #1677ff; font-size: 12px; }
+.products-summary { margin: 0 0 5px; color: #555; font-size: 12px; }
 .muted, .hint, .empty { color: #777; }
 .error { color: #c62828; word-break: break-word; }
 .actions { display: flex; gap: 8px; margin-top: 8px; }

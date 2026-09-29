@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>选择要监控的京东商品</title>
+    <link rel="stylesheet" href="select.css">
+  </head>
+  <body>
+    <main>
+      <header>
+        <div>
+          <h1>选择要监控的商品</h1>
+          <p id="summary" class="muted">正在加载搜索结果…</p>
+        </div>
+        <button id="select-low" class="secondary" type="button">全选低于阈值</button>
+      </header>
+      <div class="toolbar">
+        <button id="select-all" class="secondary" type="button">全选当前结果</button>
+        <button id="clear-all" class="secondary" type="button">清空选择</button>
+        <span id="selected-count" class="muted"></span>
+      </div>
+      <section id="products" class="products"></section>
+      <p id="message" class="message"></p>
+      <button id="confirm" class="confirm" type="button">创建监控</button>
+      <p class="hint">只会监控你勾选的 SKU。当前读取京东搜索结果第一页。</p>
+    </main>
+    <script src="select.js"></script>
+  </body>
+</html>
