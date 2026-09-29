@@ -1,0 +1,29 @@
+{
+  "manifest_version": 3,
+  "name": "京东低价预警",
+  "version": "0.1.0",
+  "description": "在本地浏览器中定时检查京东商品价格，并在价格低于阈值时提醒。",
+  "permissions": [
+    "alarms",
+    "notifications",
+    "storage",
+    "tabs"
+  ],
+  "host_permissions": [
+    "https://*.jd.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "京东低价预警",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://*.jd.com/*"],
+      "js": ["content.js"],
+      "run_at": "document_idle"
+    }
+  ]
+}

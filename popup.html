@@ -1,0 +1,32 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>京东低价预警</title>
+    <link rel="stylesheet" href="popup.css">
+  </head>
+  <body>
+    <main>
+      <h1>京东低价预警</h1>
+      <form id="monitor-form">
+        <label>
+          商品链接
+          <input id="url" type="url" placeholder="https://item.jd.com/..." required>
+        </label>
+        <label>
+          目标价格（元）
+          <input id="threshold" type="number" min="0.01" step="0.01" placeholder="100" required>
+        </label>
+        <button type="submit">添加监控</button>
+      </form>
+      <p id="message" class="message"></p>
+      <section>
+        <h2>监控列表</h2>
+        <div id="monitors" class="monitors"></div>
+      </section>
+      <p class="hint">每 30 分钟检查一次。请保持 Chrome 开启，电脑不要休眠。</p>
+    </main>
+    <script src="popup.js"></script>
+  </body>
+</html>
