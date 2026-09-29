@@ -48,12 +48,19 @@ async function render() {
     const selectedProducts = Array.isArray(monitor.selectedProducts)
       ? monitor.selectedProducts
       : [];
-    const scope = selectedProducts.length
-      ? `已选 ${selectedProducts.length} 个具体商品`
-      : "旧版任务：匹配该关键词下的全部商品";
-    const selectedSummary = selectedProducts.length
-      ? selectedProducts.slice(0, 2).map((product) => escapeHtml(product.title)).join("；")
-        + (selectedProducts.length > 2 ? "…" : "")
+    const exampleProducts = Array.isArray(monitor.exampleProducts)
+      ? monitor.exampleProducts
+      : [];
+    const matchRule = monitor.matchRule;
+    const scope = matchRule
+      ? `类型匹配：必含 ${escapeHtml(matchRule.includeKeywords.join("、"))}`
+        + (matchRule.excludeKeywords?.length ? `；排除 ${escapeHtml(matchRule.excludeKeywords.join("、"))}` : "")
+      : selectedProducts.length
+        ? `旧版任务：仅匹配 ${selectedProducts.length} 个指定 SKU`
+        : "旧版任务：匹配该关键词下的全部商品";
+    const selectedSummary = exampleProducts.length
+      ? exampleProducts.slice(0, 2).map((product) => escapeHtml(product.title)).join("；")
+        + (exampleProducts.length > 2 ? "…" : "")
       : "";
 
     card.innerHTML = `

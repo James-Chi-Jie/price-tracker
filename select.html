@@ -10,11 +10,25 @@
     <main>
       <header>
         <div>
-          <h1>选择要监控的商品</h1>
+          <h1>定义要监控的商品类型</h1>
           <p id="summary" class="muted">正在加载搜索结果…</p>
         </div>
         <button id="select-low" class="secondary" type="button">全选低于阈值</button>
       </header>
+      <section class="rule-box">
+        <h2>匹配规则</h2>
+        <label>
+          必须包含的关键词
+          <input id="include-keywords" type="text" placeholder="例如：壬苯醇醚凝胶">
+        </label>
+        <p class="field-hint">多个词用空格或逗号分隔，商品标题必须同时包含这些词。</p>
+        <label>
+          排除的关键词（可选）
+          <input id="exclude-keywords" type="text" placeholder="例如：膜 栓">
+        </label>
+        <p class="field-hint">商品标题包含任意排除词时，不会参与监控。</p>
+      </section>
+      <h2 class="section-title">选择代表性商品</h2>
       <div class="toolbar">
         <button id="select-all" class="secondary" type="button">全选当前结果</button>
         <button id="clear-all" class="secondary" type="button">清空选择</button>
@@ -22,7 +36,7 @@
       </div>
       <section id="products" class="products"></section>
       <p id="message" class="message"></p>
-      <button id="confirm" class="confirm" type="button">创建监控</button>
+      <button id="confirm" class="confirm" type="button">按此类型创建监控</button>
       <p class="hint">只会监控你勾选的 SKU。当前读取京东搜索结果第一页。</p>
     </main>
     <script src="select.js"></script>

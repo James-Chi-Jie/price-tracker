@@ -31,7 +31,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   }
 
   if (message?.type === "CREATE_MONITOR") {
-    createMonitorFromSelection(message.productIds)
+    createMonitorFromSelection(
+      message.productIds,
+      message.includeKeywords,
+      message.excludeKeywords
+    )
       .then((result) => sendResponse({ ok: true, result }))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
@@ -125,20 +129,26 @@ async function searchProducts(keyword) {
   }
 }
 
-async function createMonitorFromSelection(productIds) {
+async function createMonitorFromSelection(productIds, includeKeywords, excludeKeywords) {
   const { selectionDraft } = await chrome.storage.local.get({ selectionDraft: null });
   if (!selectionDraft?.products?.length) throw new Error("商品选择已过期，请重新搜索");
 
   const ids = new Set((Array.isArray(productIds) ? productIds : []).map(String));
   const selectedProducts = selectionDraft.products.filter((product) => ids.has(String(product.id)));
   if (!selectedProducts.length) throw new Error("请至少选择一个商品");
+  const matchRule = {
+    includeKeywords: normalizeKeywords(includeKeywords),
+    excludeKeywords: normalizeKeywords(excludeKeywords)
+  };
+  if (!matchRule.includeKeywords.length) throw new Error("请至少填写一个必含关键词");
 
   const monitor = {
     id: crypto.randomUUID(),
     platform: "jd",
     keyword: selectionDraft.keyword,
     threshold: selectionDraft.threshold,
-    selectedProducts,
+    matchRule,
+    exampleProducts: selectedProducts,
     matches: {},
     lowestPrice: null,
     eligibleCount: 0,
@@ -177,14 +187,19 @@ async function checkMonitor(id) {
   const selectedProducts = Array.isArray(monitor.selectedProducts)
     ? monitor.selectedProducts
     : [];
+  const matchRule = normalizeMatchRule(monitor.matchRule);
   const selectedIds = new Set(selectedProducts.map((product) => String(product.id)));
-  const products = selectedProducts.length
-    ? responseProducts.filter((product) => selectedIds.has(String(product.id)))
-    : responseProducts;
+  const products = matchRule
+    ? responseProducts.filter((product) => matchesRule(product, matchRule))
+    : selectedProducts.length
+      ? responseProducts.filter((product) => selectedIds.has(String(product.id)))
+      : responseProducts;
 
   if (!products.length) {
     throw new Error(
-      selectedProducts.length
+      matchRule
+        ? "当前搜索结果第一页没有符合匹配规则的商品"
+        : selectedProducts.length
         ? "选中的商品不在当前搜索结果第一页，暂时无法确认价格"
         : "未读取到商品结果，可能是页面未加载或触发了平台验证"
     );
@@ -222,7 +237,8 @@ async function checkMonitor(id) {
     ),
     eligibleCount: eligibleProducts.length,
     title: monitor.keyword,
-    missingSelectedCount: selectedProducts.length - products.length
+    matchedCount: products.length,
+    missingSelectedCount: matchRule ? 0 : selectedProducts.length - products.length
   };
 
   await updateMonitor(monitor.id, patch);
@@ -257,6 +273,26 @@ async function updateMonitor(id, patch) {
     monitor.id === id ? { ...monitor, ...patch } : monitor
   );
   await chrome.storage.local.set({ monitors: next });
+}
+
+function normalizeKeywords(value) {
+  const values = Array.isArray(value) ? value : String(value || "").split(/[\s,，、;；]+/);
+  return [...new Set(values.map((item) => String(item).trim().toLowerCase()).filter(Boolean))];
+}
+
+function normalizeMatchRule(rule) {
+  if (!rule || typeof rule !== "object") return null;
+  const normalized = {
+    includeKeywords: normalizeKeywords(rule.includeKeywords),
+    excludeKeywords: normalizeKeywords(rule.excludeKeywords)
+  };
+  return normalized.includeKeywords.length ? normalized : null;
+}
+
+function matchesRule(product, rule) {
+  const title = String(product.title || "").toLowerCase().replace(/\s+/g, "");
+  return rule.includeKeywords.every((keyword) => title.includes(keyword.replace(/\s+/g, "")))
+    && rule.excludeKeywords.every((keyword) => !title.includes(keyword.replace(/\s+/g, "")));
 }
 
 function waitForTabComplete(tabId) {

@@ -8,7 +8,29 @@ body {
 main { max-width: 980px; margin: 0 auto; padding: 28px; }
 header { display: flex; align-items: flex-start; justify-content: space-between; gap: 24px; }
 h1 { margin: 0 0 6px; font-size: 24px; }
+h2 { margin: 0 0 10px; font-size: 16px; }
 .muted, .hint { color: #777; }
+.rule-box {
+  max-width: 760px;
+  margin-top: 22px;
+  padding: 16px;
+  border: 1px solid #d9e5f7;
+  border-radius: 8px;
+  background: #f2f7ff;
+}
+.rule-box label { display: block; margin-top: 12px; font-weight: 600; }
+.rule-box label:first-of-type { margin-top: 0; }
+.rule-box input {
+  display: block;
+  width: 100%;
+  margin-top: 5px;
+  padding: 9px;
+  border: 1px solid #c9d6e8;
+  border-radius: 6px;
+  font: inherit;
+}
+.field-hint { margin: 4px 0 0; color: #667085; font-size: 12px; }
+.section-title { margin-top: 24px; }
 .toolbar { display: flex; align-items: center; gap: 8px; margin: 22px 0 12px; }
 button {
   padding: 8px 13px;
