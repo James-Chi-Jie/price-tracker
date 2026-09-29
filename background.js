@@ -13,6 +13,15 @@ chrome.alarms.onAlarm.addListener(async (alarm) => {
   await checkAllMonitors();
 });
 
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  const { notificationTargets } = await chrome.storage.local.get({ notificationTargets: {} });
+  const url = notificationTargets[notificationId];
+  if (!url) return;
+  await chrome.tabs.create({ url, active: true });
+  delete notificationTargets[notificationId];
+  await chrome.storage.local.set({ notificationTargets });
+});
+
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "CHECK_ONE") {
     checkMonitor(message.id)
@@ -58,51 +67,90 @@ async function checkMonitor(id) {
   const monitor = monitors.find((item) => item.id === id);
   if (!monitor) throw new Error("监控任务不存在");
 
-  const adapter = Object.values(self.PriceAdapters || {})
-    .find((candidate) => candidate.canHandle(monitor.url));
+  const adapter = self.PriceAdapters?.[monitor.platform || "jd"];
   if (!adapter) throw new Error("暂不支持该平台");
+  if (!monitor.keyword?.trim()) throw new Error("监控关键词不能为空");
 
-  const tab = await chrome.tabs.create({ url: monitor.url, active: false });
+  const tab = await chrome.tabs.create({
+    url: adapter.buildSearchUrl(monitor.keyword.trim()),
+    active: false
+  });
   try {
     await waitForTabComplete(tab.id);
     await sleep(1500);
     const response = await chrome.tabs.sendMessage(tab.id, {
-      type: "READ_PRICE",
+      type: "READ_SEARCH_RESULTS",
       platform: adapter.id
     });
 
-    if (!response?.price || !Number.isFinite(response.price)) {
-      throw new Error(response?.error || "未能读取有效价格");
+    if (!Array.isArray(response?.products)) {
+      throw new Error(response?.error || "未能读取京东搜索结果");
     }
 
-    const isBelow = response.price < Number(monitor.threshold);
-    const shouldNotify = isBelow && monitor.wasBelowThreshold !== true;
+    if (!response.products.length) {
+      throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
+    }
+
+    const previousMatches = monitor.matches || {};
+    const nextMatches = { ...previousMatches };
+    const newlyMatched = [];
+
+    for (const product of response.products) {
+      const isBelow = product.price < Number(monitor.threshold);
+      const previous = previousMatches[product.id] || {};
+      nextMatches[product.id] = {
+        title: product.title,
+        price: product.price,
+        url: product.url,
+        wasBelowThreshold: isBelow,
+        lastSeenAt: Date.now()
+      };
+      if (isBelow && previous.wasBelowThreshold !== true) {
+        newlyMatched.push(product);
+      }
+    }
+
+    const eligibleProducts = response.products
+      .filter((product) => product.price < Number(monitor.threshold))
+      .sort((left, right) => left.price - right.price);
     const patch = {
-      lastPrice: response.price,
       lastCheckedAt: Date.now(),
       lastError: "",
-      wasBelowThreshold: isBelow,
-      title: response.title || monitor.title || "京东商品"
+      matches: nextMatches,
+      lowestPrice: response.products.reduce(
+        (lowest, product) => Math.min(lowest, product.price),
+        Number.POSITIVE_INFINITY
+      ),
+      eligibleCount: eligibleProducts.length,
+      title: monitor.keyword
     };
 
     await updateMonitor(monitor.id, patch);
-    if (shouldNotify) {
-      await notifyPrice(monitor, response.price, response.title);
+    if (newlyMatched.length) {
+      await notifyMatches(monitor, newlyMatched.sort((left, right) => left.price - right.price));
     }
 
-    return { ...monitor, ...patch, notified: shouldNotify };
+    return { ...monitor, ...patch, notified: newlyMatched.length > 0 };
   } finally {
     await chrome.tabs.remove(tab.id).catch(() => {});
   }
 }
 
-async function notifyPrice(monitor, price, title) {
-  const safeTitle = title || monitor.title || "京东商品";
-  await chrome.notifications.create(`price-${monitor.id}-${Date.now()}`, {
+async function notifyMatches(monitor, products) {
+  const notificationId = `price-${monitor.id}-${Date.now()}`;
+  const visibleProducts = products.slice(0, 3);
+  const message = visibleProducts
+    .map((product) => `${product.title.slice(0, 32)} ¥${product.price.toFixed(2)}`)
+    .join("\n");
+  const notificationTargets = await chrome.storage.local.get({ notificationTargets: {} });
+  notificationTargets.notificationTargets[notificationId] = visibleProducts[0].url;
+  await chrome.storage.local.set(notificationTargets);
+
+  await chrome.notifications.create(notificationId, {
     type: "basic",
     iconUrl: "icon128.svg",
-    title: "京东低价提醒",
-    message: `${safeTitle}\n当前 ¥${price.toFixed(2)}，低于阈值 ¥${Number(monitor.threshold).toFixed(2)}`
+    title: `京东低价提醒：${monitor.keyword}`,
+    message: `${message}\n低于阈值 ¥${Number(monitor.threshold).toFixed(2)}，点击打开最低价商品`
   });
 }
 

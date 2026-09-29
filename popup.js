@@ -1,33 +1,36 @@
 const form = document.querySelector("#monitor-form");
-const urlInput = document.querySelector("#url");
+const keywordInput = document.querySelector("#keyword");
 const thresholdInput = document.querySelector("#threshold");
 const monitorsEl = document.querySelector("#monitors");
 const messageEl = document.querySelector("#message");
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const url = urlInput.value.trim();
+  const keyword = keywordInput.value.trim();
   const threshold = Number(thresholdInput.value);
 
-  if (!isJdUrl(url)) return showMessage("请输入京东商品链接");
+  if (!keyword) return showMessage("请输入商品关键词");
   if (!Number.isFinite(threshold) || threshold <= 0) return showMessage("请输入有效的目标价格");
 
   const { monitors } = await chrome.storage.local.get({ monitors: [] });
-  monitors.push({
+  const monitor = {
     id: crypto.randomUUID(),
-    url,
+    platform: "jd",
+    keyword,
     threshold,
-    title: "",
-    lastPrice: null,
+    matches: {},
+    lowestPrice: null,
+    eligibleCount: 0,
     lastCheckedAt: null,
-    lastError: "",
-    wasBelowThreshold: false
-  });
+    lastError: ""
+  };
+  monitors.push(monitor);
   await chrome.storage.local.set({ monitors });
   form.reset();
   showMessage("已添加，正在执行首次检查…");
-  await chrome.runtime.sendMessage({ type: "CHECK_ONE", id: monitors.at(-1).id });
+  const result = await chrome.runtime.sendMessage({ type: "CHECK_ONE", id: monitor.id });
   await render();
+  showMessage(result?.ok ? "检查完成" : `检查失败：${result?.error || "未知错误"}`);
 });
 
 async function render() {
@@ -42,15 +45,18 @@ async function render() {
   for (const monitor of monitors) {
     const card = document.createElement("article");
     card.className = "monitor";
-    const price = monitor.lastPrice ? `¥${monitor.lastPrice.toFixed(2)}` : "未检查";
+    const lowestPrice = Number.isFinite(monitor.lowestPrice)
+      ? `¥${monitor.lowestPrice.toFixed(2)}`
+      : "未检查";
     const checked = monitor.lastCheckedAt
       ? new Date(monitor.lastCheckedAt).toLocaleString()
       : "尚未检查";
     const error = monitor.lastError ? `<p class="error">${escapeHtml(monitor.lastError)}</p>` : "";
 
     card.innerHTML = `
-      <p class="title">${escapeHtml(monitor.title || "京东商品")}</p>
-      <p>目标：¥${Number(monitor.threshold).toFixed(2)}　当前：${price}</p>
+      <p class="title">京东：${escapeHtml(monitor.keyword)}</p>
+      <p>目标：¥${Number(monitor.threshold).toFixed(2)}　最低：${lowestPrice}</p>
+      <p>低价商品：${Number(monitor.eligibleCount || 0)} 个</p>
       <p class="muted">上次检查：${escapeHtml(checked)}</p>
       ${error}
       <div class="actions">
@@ -75,20 +81,11 @@ monitorsEl.addEventListener("click", async (event) => {
 
   button.disabled = true;
   showMessage("正在检查…");
-  await chrome.runtime.sendMessage({ type: "CHECK_ONE", id });
+  const result = await chrome.runtime.sendMessage({ type: "CHECK_ONE", id });
   button.disabled = false;
   await render();
-  showMessage("检查完成");
+  showMessage(result?.ok ? "检查完成" : `检查失败：${result?.error || "未知错误"}`);
 });
-
-function isJdUrl(value) {
-  try {
-    const hostname = new URL(value).hostname;
-    return hostname === "jd.com" || hostname.endsWith(".jd.com");
-  } catch {
-    return false;
-  }
-}
 
 function showMessage(message) {
   messageEl.textContent = message;

@@ -11,8 +11,8 @@
       <h1>京东低价预警</h1>
       <form id="monitor-form">
         <label>
-          商品链接
-          <input id="url" type="url" placeholder="https://item.jd.com/..." required>
+          商品关键词
+          <input id="keyword" type="text" placeholder="例如：索尼 WH-1000XM5" required>
         </label>
         <label>
           目标价格（元）
@@ -25,7 +25,7 @@
         <h2>监控列表</h2>
         <div id="monitors" class="monitors"></div>
       </section>
-      <p class="hint">每 30 分钟检查一次。请保持 Chrome 开启，电脑不要休眠。</p>
+      <p class="hint">每 30 分钟搜索一次京东结果。请保持 Chrome 开启，电脑不要休眠。</p>
     </main>
     <script src="popup.js"></script>
   </body>
