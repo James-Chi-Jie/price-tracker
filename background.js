@@ -283,7 +283,7 @@ async function notifyMatches(monitor, products) {
 
   await chrome.notifications.create(notificationId, {
     type: "basic",
-    iconUrl: "icon128.svg",
+    iconUrl: "icon128.png",
     title: `京东低价提醒：${monitor.keyword}`,
     message: `${message}\n低于阈值 ¥${Number(monitor.threshold).toFixed(2)}，点击打开最低价商品`
   });
