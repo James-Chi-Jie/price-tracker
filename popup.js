@@ -68,6 +68,10 @@ async function render() {
       ? exampleProducts.slice(0, 2).map((product) => escapeHtml(product.title)).join("；")
         + (exampleProducts.length > 2 ? "…" : "")
       : "";
+    const latestProducts = getLatestProducts(monitor);
+    const latestProductLinks = latestProducts.length
+      ? `<details class="matches"><summary>查看 ${latestProducts.length} 个匹配商品</summary><ul>${latestProducts.map(renderProductLink).join("")}</ul></details>`
+      : '<p class="muted">暂无最近一次检查结果</p>';
 
     card.innerHTML = `
       <p class="title">京东：${escapeHtml(monitor.keyword)}</p>
@@ -75,11 +79,13 @@ async function render() {
       ${selectedSummary ? `<p class="products-summary">${selectedSummary}</p>` : ""}
       <p>目标（${basisLabels[matchRule?.priceBasis || "total"]}）：¥${Number(monitor.threshold).toFixed(2)}　最低：${lowestPrice}</p>
       <p>低价商品：${Number(monitor.eligibleCount || 0)} 个</p>
+      ${latestProductLinks}
       ${monitor.missingSelectedCount ? `<p class="error">有 ${monitor.missingSelectedCount} 个商品暂不在搜索结果第一页</p>` : ""}
       <p class="muted">上次检查：${escapeHtml(checked)}</p>
       ${error}
       <div class="actions">
         <button data-action="check" data-id="${monitor.id}">立即检查</button>
+        <button data-action="export" data-id="${monitor.id}">导出 CSV</button>
         <button class="danger" data-action="delete" data-id="${monitor.id}">删除</button>
       </div>`;
     monitorsEl.appendChild(card);
@@ -98,6 +104,11 @@ monitorsEl.addEventListener("click", async (event) => {
     return;
   }
 
+  if (button.dataset.action === "export") {
+    await exportMonitor(button.dataset.id);
+    return;
+  }
+
   button.disabled = true;
   showMessage("正在检查…");
   const result = await chrome.runtime.sendMessage({ type: "CHECK_ONE", id });
@@ -108,6 +119,52 @@ monitorsEl.addEventListener("click", async (event) => {
 
 function showMessage(message) {
   messageEl.textContent = message;
+}
+
+function getLatestProducts(monitor) {
+  if (Array.isArray(monitor.latestProducts)) return monitor.latestProducts;
+  return Object.entries(monitor.matches || {}).map(([id, product]) => ({ id, ...product }));
+}
+
+function renderProductLink(product) {
+  const comparison = Number.isFinite(product.comparisonPrice)
+    ? `比较价 ¥${Number(product.comparisonPrice).toFixed(2)}`
+    : `¥${Number(product.price).toFixed(2)}`;
+  return `<li class="match-item"><a href="${escapeHtml(product.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(product.title)}</a><span>实际 ¥${Number(product.price).toFixed(2)} · ${comparison}</span></li>`;
+}
+
+async function exportMonitor(id) {
+  const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  const monitor = monitors.find((item) => item.id === id);
+  if (!monitor) return showMessage("监控任务不存在");
+  const products = getLatestProducts(monitor);
+  if (!products.length) return showMessage("暂无可导出的检查结果");
+
+  const rows = [
+    ["SKU", "商品标题", "实际价格", "比较价格", "剂型", "规格", "盒数", "链接"],
+    ...products.map((product) => [
+      product.id,
+      product.title,
+      Number(product.price).toFixed(2),
+      Number.isFinite(product.comparisonPrice) ? Number(product.comparisonPrice).toFixed(2) : "",
+      product.attributes?.dosageForm || "",
+      product.attributes?.strength || "",
+      product.attributes?.packCount || "",
+      product.url
+    ])
+  ];
+  const csv = "\\uFEFF" + rows.map((row) => row.map(csvCell).join(",")).join("\\r\\n");
+  const blobUrl = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+  const link = document.createElement("a");
+  link.href = blobUrl;
+  link.download = `jd-price-monitor-${Date.now()}.csv`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
+  showMessage(`已导出 ${products.length} 个商品`);
+}
+
+function csvCell(value) {
+  return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
 function escapeHtml(value) {

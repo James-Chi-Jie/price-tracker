@@ -240,10 +240,19 @@ async function checkMonitor(id) {
   const eligibleProducts = products
     .filter((product) => product.comparisonPrice < Number(monitor.threshold))
     .sort((left, right) => left.comparisonPrice - right.comparisonPrice);
+  const latestProducts = products.map((product) => ({
+    id: product.id,
+    url: product.url,
+    title: product.title,
+    price: product.price,
+    comparisonPrice: product.comparisonPrice,
+    attributes: product.attributes
+  }));
   const patch = {
     lastCheckedAt: Date.now(),
     lastError: "",
     matches: nextMatches,
+    latestProducts,
     lowestPrice: products.reduce(
       (lowest, product) => Math.min(lowest, product.comparisonPrice),
       Number.POSITIVE_INFINITY
@@ -256,7 +265,7 @@ async function checkMonitor(id) {
 
   await updateMonitor(monitor.id, patch);
   if (newlyMatched.length) {
-    await notifyMatches(monitor, newlyMatched.sort((left, right) => left.price - right.price));
+    await notifyMatches(monitor, newlyMatched.sort((left, right) => left.comparisonPrice - right.comparisonPrice));
   }
 
   return { ...monitor, ...patch, notified: newlyMatched.length > 0 };

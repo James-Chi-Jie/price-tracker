@@ -42,5 +42,11 @@ button.danger { background: #e5484d; }
 .products-summary { margin: 0 0 5px; color: #555; font-size: 12px; }
 .muted, .hint, .empty { color: #777; }
 .error { color: #c62828; word-break: break-word; }
-.actions { display: flex; gap: 8px; margin-top: 8px; }
+.actions { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px; }
+.matches { margin: 8px 0; border-top: 1px solid #eee; padding-top: 6px; }
+.matches summary { color: #1677ff; cursor: pointer; }
+.matches ul { max-height: 220px; overflow: auto; margin: 6px 0 0; padding: 0; list-style: none; }
+.match-item { margin: 6px 0; }
+.match-item a { display: block; color: #1677ff; line-height: 1.35; }
+.match-item span { color: #666; font-size: 12px; }
 .hint { margin-bottom: 0; font-size: 12px; }
