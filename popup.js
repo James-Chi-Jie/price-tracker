@@ -53,11 +53,13 @@ async function render() {
       : [];
     const matchRule = monitor.matchRule;
     const basisLabels = { total: "总价", perBox: "每盒价", perUnit: "每单位价" };
+    const dosageForms = matchRule?.dosageForms || (matchRule?.dosageForm ? [matchRule.dosageForm] : []);
+    const strengths = matchRule?.strengths || (matchRule?.strength ? [matchRule.strength] : []);
     const scope = matchRule
       ? `类型匹配：必含 ${escapeHtml(matchRule.includeKeywords.join("、"))}`
         + (matchRule.excludeKeywords?.length ? `；排除 ${escapeHtml(matchRule.excludeKeywords.join("、"))}` : "")
-        + (matchRule.dosageForm ? `；剂型 ${escapeHtml(matchRule.dosageForm)}` : "")
-        + (matchRule.strength ? `；规格 ${escapeHtml(matchRule.strength)}` : "")
+        + (dosageForms.length ? `；剂型 ${escapeHtml(dosageForms.join("、"))}` : "")
+        + (strengths.length ? `；规格 ${escapeHtml(strengths.join("、"))}` : "")
         + (matchRule.packCounts?.length ? `；盒数 ${matchRule.packCounts.join("、")}` : "；盒数不限")
       : selectedProducts.length
         ? `旧版任务：仅匹配 ${selectedProducts.length} 个指定 SKU`

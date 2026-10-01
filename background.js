@@ -136,7 +136,6 @@ async function createMonitorFromSelection(productIds, includeKeywords, excludeKe
 
   const ids = new Set((Array.isArray(productIds) ? productIds : []).map(String));
   const selectedProducts = selectionDraft.products.filter((product) => ids.has(String(product.id)));
-  if (!selectedProducts.length) throw new Error("请至少选择一个商品");
   const matchRule = {
     includeKeywords: normalizeKeywords(includeKeywords),
     excludeKeywords: normalizeKeywords(excludeKeywords),
@@ -302,8 +301,8 @@ function normalizeMatchRule(rule) {
     ...normalizeVariantRule(rule)
   };
   return normalized.includeKeywords.length
-    || normalized.dosageForm
-    || normalized.strength
+    || normalized.dosageForms?.length
+    || normalized.strengths?.length
     || normalized.packCounts?.length
     ? normalized
     : null;
@@ -314,10 +313,10 @@ function matchesRule(product, rule) {
   const attributes = product.attributes || {};
   const keywordMatch = rule.includeKeywords.every((keyword) => title.includes(keyword.replace(/\s+/g, "")));
   const excluded = rule.excludeKeywords.some((keyword) => title.includes(keyword.replace(/\s+/g, "")));
-  const dosageMatch = !rule.dosageForm
-    || String(attributes.dosageForm || "").toLowerCase() === rule.dosageForm;
-  const strengthMatch = !rule.strength
-    || String(attributes.strength || "").toLowerCase().replace(/\s+/g, "") === rule.strength;
+  const dosageMatch = !rule.dosageForms?.length
+    || rule.dosageForms.includes(String(attributes.dosageForm || "").toLowerCase());
+  const strengthMatch = !rule.strengths?.length
+    || rule.strengths.includes(String(attributes.strength || "").toLowerCase().replace(/\s+/g, ""));
   const packMatch = !rule.packCounts?.length
     || rule.packCounts.includes(Number(attributes.packCount));
   return keywordMatch && !excluded && dosageMatch && strengthMatch && packMatch;
@@ -332,8 +331,9 @@ function normalizeVariantRule(rule) {
     ? value.priceBasis
     : "total";
   return {
-    dosageForm: String(value.dosageForm || "").trim().toLowerCase(),
-    strength: String(value.strength || "").trim().toLowerCase().replace(/\s+/g, ""),
+    dosageForms: normalizeKeywords(value.dosageForms || (value.dosageForm ? [value.dosageForm] : [])),
+    strengths: normalizeKeywords(value.strengths || (value.strength ? [value.strength] : []))
+      .map((item) => item.replace(/\s+/g, "")),
     packCounts: packCounts?.length ? packCounts.sort((left, right) => left - right) : null,
     priceBasis
   };

@@ -16,31 +16,11 @@
         <button id="select-low" class="secondary" type="button">全选低于阈值</button>
       </header>
       <section class="rule-box">
-        <h2>匹配规则</h2>
-        <label>
-          必须包含的关键词
-          <input id="include-keywords" type="text" placeholder="例如：壬苯醇醚凝胶">
-        </label>
-        <p class="field-hint">多个词用空格或逗号分隔，商品标题必须同时包含这些词。</p>
-        <label>
-          剂型
-          <input id="dosage-form" type="text" placeholder="例如：凝胶">
-        </label>
-        <label>
-          规格/浓度
-          <input id="strength" type="text" placeholder="例如：4%">
-        </label>
-        <p class="field-hint">程序会从标题中解析这些属性，再按字段分别匹配。</p>
-        <label>
-          允许装量
-          <select id="pack-mode">
-            <option value="all">不限盒数</option>
-            <option value="selected">只匹配代表商品的盒数</option>
-            <option value="custom">自定义盒数</option>
-          </select>
-        </label>
-        <input id="pack-counts" class="pack-counts" type="text" placeholder="例如：1,2,3" disabled>
-        <p class="field-hint">选择“自定义”后填写盒数；例如 1,2,3 会匹配一盒、两盒和三盒。</p>
+        <h2>从本次搜索结果中选择条件</h2>
+        <p class="field-hint">产品名和阈值沿用入口填写的内容。下面只选择你关心的变体属性；某一组不选择表示不限。</p>
+        <div id="dosage-options" class="option-group"></div>
+        <div id="strength-options" class="option-group"></div>
+        <div id="pack-options" class="option-group"></div>
         <label>
           排除的关键词（可选）
           <input id="exclude-keywords" type="text" placeholder="例如：膜 栓">
@@ -55,16 +35,16 @@
         </label>
         <p class="field-hint">商品标题包含任意排除词时，不会参与监控。</p>
       </section>
-      <h2 class="section-title">选择代表性商品</h2>
+      <h2 class="section-title">搜索结果预览</h2>
       <div class="toolbar">
-        <button id="select-all" class="secondary" type="button">全选当前结果</button>
-        <button id="clear-all" class="secondary" type="button">清空选择</button>
-        <span id="selected-count" class="muted"></span>
+        <button id="select-all" class="secondary" type="button">全选预览商品</button>
+        <button id="clear-all" class="secondary" type="button">清空预览选择</button>
+        <span id="selected-count" class="muted">预览选择不是监控范围</span>
       </div>
       <section id="products" class="products"></section>
       <p id="message" class="message"></p>
-      <button id="confirm" class="confirm" type="button">按此类型创建监控</button>
-      <p class="hint">勾选的是代表性商品；真正监控范围由上面的类型和装量规则决定。当前读取京东搜索结果第一页。</p>
+      <button id="confirm" class="confirm" type="button">按这些条件创建监控</button>
+      <p class="hint">监控范围由产品名和上面的属性条件决定，不是预览商品的 SKU。当前读取京东搜索结果第一页。</p>
     </main>
     <script src="select.js"></script>
   </body>
