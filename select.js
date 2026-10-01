@@ -8,9 +8,14 @@ const selectLowButton = document.querySelector("#select-low");
 const clearAllButton = document.querySelector("#clear-all");
 const includeKeywordsInput = document.querySelector("#include-keywords");
 const excludeKeywordsInput = document.querySelector("#exclude-keywords");
+const dosageFormInput = document.querySelector("#dosage-form");
+const strengthInput = document.querySelector("#strength");
+const packModeSelect = document.querySelector("#pack-mode");
+const packCountsInput = document.querySelector("#pack-counts");
+const priceBasisSelect = document.querySelector("#price-basis");
 
 let draft = null;
-let autoSuggestedKeywords = "";
+let autoSuggestedFields = { include: "", dosageForm: "", strength: "" };
 
 init();
 
@@ -56,7 +61,15 @@ function renderProducts() {
     price.textContent = `¥${Number(product.price).toFixed(2)}`;
     const sku = document.createElement("span");
     sku.textContent = `SKU ${product.id}`;
-    meta.append(price, sku);
+    const attributes = product.attributes || {};
+    const variant = document.createElement("span");
+    variant.textContent = [
+      attributes.dosageForm,
+      attributes.strength,
+      attributes.packCount ? `${attributes.packCount}盒` : "",
+      attributes.unitsPerPack ? `${attributes.unitsPerPack}${attributes.unitType || "个"}` : ""
+    ].filter(Boolean).join(" · ") || "规格待确认";
+    meta.append(price, sku, variant);
     content.append(title, meta);
 
     const link = document.createElement("a");
@@ -89,6 +102,9 @@ clearAllButton.addEventListener("click", () => {
   setAllChecked(() => false);
 });
 
+packModeSelect.addEventListener("change", updatePackInputState);
+updatePackInputState();
+
 confirmButton.addEventListener("click", async () => {
   const productIds = [...productsEl.querySelectorAll("input:checked")].map((input) => input.value);
   if (!productIds.length) {
@@ -102,6 +118,15 @@ confirmButton.addEventListener("click", async () => {
     includeKeywordsInput.focus();
     return;
   }
+  const selectedProducts = getSelectedProducts();
+  const packCounts = resolvePackCounts(selectedProducts);
+  if (packCounts === "invalid") return;
+  const variantRule = {
+    dosageForm: dosageFormInput.value.trim(),
+    strength: strengthInput.value.trim(),
+    packCounts,
+    priceBasis: priceBasisSelect.value
+  };
 
   confirmButton.disabled = true;
   showMessage("正在创建监控并执行首次检查…");
@@ -109,7 +134,8 @@ confirmButton.addEventListener("click", async () => {
     type: "CREATE_MONITOR",
     productIds,
     includeKeywords,
-    excludeKeywords
+    excludeKeywords,
+    variantRule
   });
   confirmButton.disabled = false;
   if (!result?.ok) {
@@ -125,6 +151,45 @@ function setAllChecked(predicate) {
   }
   updateSelectedCount();
   updateRuleSuggestion();
+}
+
+function getSelectedProducts() {
+  const selectedIds = new Set(
+    [...productsEl.querySelectorAll("input:checked")].map((input) => String(input.value))
+  );
+  return draft.products.filter((product) => selectedIds.has(String(product.id)));
+}
+
+function resolvePackCounts(selectedProducts) {
+  if (packModeSelect.value === "all") return null;
+  if (packModeSelect.value === "selected") {
+    const counts = [...new Set(selectedProducts
+      .map((product) => product.attributes?.packCount)
+      .filter((count) => Number.isInteger(count) && count > 0))];
+    if (!counts.length) {
+      showMessage("代表商品没有识别出盒数，请改用自定义盒数", true);
+      packModeSelect.value = "custom";
+      updatePackInputState();
+      return "invalid";
+    }
+    return counts.sort((left, right) => left - right);
+  }
+
+  const counts = packCountsInput.value
+    .split(/[\s,，、;；]+/)
+    .map((value) => Number.parseInt(value.replace(/\D/g, ""), 10))
+    .filter((value) => Number.isInteger(value) && value > 0);
+  const uniqueCounts = [...new Set(counts)].sort((left, right) => left - right);
+  if (!uniqueCounts.length) {
+    showMessage("请填写有效的自定义盒数，例如：1,2,3", true);
+    packCountsInput.focus();
+    return "invalid";
+  }
+  return uniqueCounts;
+}
+
+function updatePackInputState() {
+  packCountsInput.disabled = packModeSelect.value !== "custom";
 }
 
 function updateSelectedCount() {
@@ -166,13 +231,25 @@ function suggestIncludeKeywords(products) {
 }
 
 function updateRuleSuggestion() {
-  const selectedIds = new Set(
-    [...productsEl.querySelectorAll("input:checked")].map((input) => String(input.value))
-  );
-  const selectedProducts = draft.products.filter((product) => selectedIds.has(String(product.id)));
-  const suggestion = suggestIncludeKeywords(selectedProducts);
-  if (!includeKeywordsInput.value.trim() || includeKeywordsInput.value.trim() === autoSuggestedKeywords) {
-    includeKeywordsInput.value = suggestion;
+  const selectedProducts = getSelectedProducts();
+  const suggestions = {
+    include: suggestIncludeKeywords(selectedProducts),
+    dosageForm: commonAttribute(selectedProducts, "dosageForm"),
+    strength: commonAttribute(selectedProducts, "strength")
+  };
+  if (!includeKeywordsInput.value.trim() || includeKeywordsInput.value.trim() === autoSuggestedFields.include) {
+    includeKeywordsInput.value = suggestions.include;
   }
-  autoSuggestedKeywords = suggestion;
+  if (!dosageFormInput.value.trim() || dosageFormInput.value.trim() === autoSuggestedFields.dosageForm) {
+    dosageFormInput.value = suggestions.dosageForm;
+  }
+  if (!strengthInput.value.trim() || strengthInput.value.trim() === autoSuggestedFields.strength) {
+    strengthInput.value = suggestions.strength;
+  }
+  autoSuggestedFields = suggestions;
+}
+
+function commonAttribute(products, key) {
+  const values = [...new Set(products.map((product) => product.attributes?.[key]).filter(Boolean))];
+  return values.length === 1 ? String(values[0]) : "";
 }

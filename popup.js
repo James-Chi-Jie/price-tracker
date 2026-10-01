@@ -52,9 +52,13 @@ async function render() {
       ? monitor.exampleProducts
       : [];
     const matchRule = monitor.matchRule;
+    const basisLabels = { total: "总价", perBox: "每盒价", perUnit: "每单位价" };
     const scope = matchRule
       ? `类型匹配：必含 ${escapeHtml(matchRule.includeKeywords.join("、"))}`
         + (matchRule.excludeKeywords?.length ? `；排除 ${escapeHtml(matchRule.excludeKeywords.join("、"))}` : "")
+        + (matchRule.dosageForm ? `；剂型 ${escapeHtml(matchRule.dosageForm)}` : "")
+        + (matchRule.strength ? `；规格 ${escapeHtml(matchRule.strength)}` : "")
+        + (matchRule.packCounts?.length ? `；盒数 ${matchRule.packCounts.join("、")}` : "；盒数不限")
       : selectedProducts.length
         ? `旧版任务：仅匹配 ${selectedProducts.length} 个指定 SKU`
         : "旧版任务：匹配该关键词下的全部商品";
@@ -67,7 +71,7 @@ async function render() {
       <p class="title">京东：${escapeHtml(monitor.keyword)}</p>
       <p class="scope">${scope}</p>
       ${selectedSummary ? `<p class="products-summary">${selectedSummary}</p>` : ""}
-      <p>目标：¥${Number(monitor.threshold).toFixed(2)}　最低：${lowestPrice}</p>
+      <p>目标（${basisLabels[matchRule?.priceBasis || "total"]}）：¥${Number(monitor.threshold).toFixed(2)}　最低：${lowestPrice}</p>
       <p>低价商品：${Number(monitor.eligibleCount || 0)} 个</p>
       ${monitor.missingSelectedCount ? `<p class="error">有 ${monitor.missingSelectedCount} 个商品暂不在搜索结果第一页</p>` : ""}
       <p class="muted">上次检查：${escapeHtml(checked)}</p>

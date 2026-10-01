@@ -34,7 +34,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     createMonitorFromSelection(
       message.productIds,
       message.includeKeywords,
-      message.excludeKeywords
+      message.excludeKeywords,
+      message.variantRule
     )
       .then((result) => sendResponse({ ok: true, result }))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
@@ -129,7 +130,7 @@ async function searchProducts(keyword) {
   }
 }
 
-async function createMonitorFromSelection(productIds, includeKeywords, excludeKeywords) {
+async function createMonitorFromSelection(productIds, includeKeywords, excludeKeywords, variantRule) {
   const { selectionDraft } = await chrome.storage.local.get({ selectionDraft: null });
   if (!selectionDraft?.products?.length) throw new Error("商品选择已过期，请重新搜索");
 
@@ -138,7 +139,8 @@ async function createMonitorFromSelection(productIds, includeKeywords, excludeKe
   if (!selectedProducts.length) throw new Error("请至少选择一个商品");
   const matchRule = {
     includeKeywords: normalizeKeywords(includeKeywords),
-    excludeKeywords: normalizeKeywords(excludeKeywords)
+    excludeKeywords: normalizeKeywords(excludeKeywords),
+    ...normalizeVariantRule(variantRule)
   };
   if (!matchRule.includeKeywords.length) throw new Error("请至少填写一个必含关键词");
 
@@ -189,13 +191,13 @@ async function checkMonitor(id) {
     : [];
   const matchRule = normalizeMatchRule(monitor.matchRule);
   const selectedIds = new Set(selectedProducts.map((product) => String(product.id)));
-  const products = matchRule
+  const matchedProducts = matchRule
     ? responseProducts.filter((product) => matchesRule(product, matchRule))
     : selectedProducts.length
       ? responseProducts.filter((product) => selectedIds.has(String(product.id)))
       : responseProducts;
 
-  if (!products.length) {
+  if (!matchedProducts.length) {
     throw new Error(
       matchRule
         ? "当前搜索结果第一页没有符合匹配规则的商品"
@@ -205,16 +207,28 @@ async function checkMonitor(id) {
     );
   }
 
+  const products = matchedProducts
+    .map((product) => ({
+      ...product,
+      comparisonPrice: getComparablePrice(product, matchRule)
+    }))
+    .filter((product) => Number.isFinite(product.comparisonPrice));
+  if (!products.length) {
+    throw new Error("找到符合条件的商品，但无法解析其装量，暂时无法计算比较价格");
+  }
+
   const previousMatches = monitor.matches || {};
   const nextMatches = { ...previousMatches };
   const newlyMatched = [];
 
   for (const product of products) {
-    const isBelow = product.price < Number(monitor.threshold);
+    const isBelow = product.comparisonPrice < Number(monitor.threshold);
     const previous = previousMatches[product.id] || {};
     nextMatches[product.id] = {
       title: product.title,
       price: product.price,
+      comparisonPrice: product.comparisonPrice,
+      attributes: product.attributes,
       url: product.url,
       wasBelowThreshold: isBelow,
       lastSeenAt: Date.now()
@@ -225,19 +239,19 @@ async function checkMonitor(id) {
   }
 
   const eligibleProducts = products
-    .filter((product) => product.price < Number(monitor.threshold))
-    .sort((left, right) => left.price - right.price);
+    .filter((product) => product.comparisonPrice < Number(monitor.threshold))
+    .sort((left, right) => left.comparisonPrice - right.comparisonPrice);
   const patch = {
     lastCheckedAt: Date.now(),
     lastError: "",
     matches: nextMatches,
     lowestPrice: products.reduce(
-      (lowest, product) => Math.min(lowest, product.price),
+      (lowest, product) => Math.min(lowest, product.comparisonPrice),
       Number.POSITIVE_INFINITY
     ),
     eligibleCount: eligibleProducts.length,
     title: monitor.keyword,
-    matchedCount: products.length,
+    matchedCount: matchedProducts.length,
     missingSelectedCount: matchRule ? 0 : selectedProducts.length - products.length
   };
 
@@ -253,7 +267,7 @@ async function notifyMatches(monitor, products) {
   const notificationId = `price-${monitor.id}-${Date.now()}`;
   const visibleProducts = products.slice(0, 3);
   const message = visibleProducts
-    .map((product) => `${product.title.slice(0, 32)} ¥${product.price.toFixed(2)}`)
+    .map((product) => `${product.title.slice(0, 32)} ¥${product.price.toFixed(2)}（比较价 ¥${product.comparisonPrice.toFixed(2)}）`)
     .join("\n");
   const notificationTargets = await chrome.storage.local.get({ notificationTargets: {} });
   notificationTargets.notificationTargets[notificationId] = visibleProducts[0].url;
@@ -284,15 +298,61 @@ function normalizeMatchRule(rule) {
   if (!rule || typeof rule !== "object") return null;
   const normalized = {
     includeKeywords: normalizeKeywords(rule.includeKeywords),
-    excludeKeywords: normalizeKeywords(rule.excludeKeywords)
+    excludeKeywords: normalizeKeywords(rule.excludeKeywords),
+    ...normalizeVariantRule(rule)
   };
-  return normalized.includeKeywords.length ? normalized : null;
+  return normalized.includeKeywords.length
+    || normalized.dosageForm
+    || normalized.strength
+    || normalized.packCounts?.length
+    ? normalized
+    : null;
 }
 
 function matchesRule(product, rule) {
   const title = String(product.title || "").toLowerCase().replace(/\s+/g, "");
-  return rule.includeKeywords.every((keyword) => title.includes(keyword.replace(/\s+/g, "")))
-    && rule.excludeKeywords.every((keyword) => !title.includes(keyword.replace(/\s+/g, "")));
+  const attributes = product.attributes || {};
+  const keywordMatch = rule.includeKeywords.every((keyword) => title.includes(keyword.replace(/\s+/g, "")));
+  const excluded = rule.excludeKeywords.some((keyword) => title.includes(keyword.replace(/\s+/g, "")));
+  const dosageMatch = !rule.dosageForm
+    || String(attributes.dosageForm || "").toLowerCase() === rule.dosageForm;
+  const strengthMatch = !rule.strength
+    || String(attributes.strength || "").toLowerCase().replace(/\s+/g, "") === rule.strength;
+  const packMatch = !rule.packCounts?.length
+    || rule.packCounts.includes(Number(attributes.packCount));
+  return keywordMatch && !excluded && dosageMatch && strengthMatch && packMatch;
+}
+
+function normalizeVariantRule(rule) {
+  const value = rule && typeof rule === "object" ? rule : {};
+  const packCounts = Array.isArray(value.packCounts)
+    ? [...new Set(value.packCounts.map(Number).filter((count) => Number.isInteger(count) && count > 0))]
+    : null;
+  const priceBasis = ["total", "perBox", "perUnit"].includes(value.priceBasis)
+    ? value.priceBasis
+    : "total";
+  return {
+    dosageForm: String(value.dosageForm || "").trim().toLowerCase(),
+    strength: String(value.strength || "").trim().toLowerCase().replace(/\s+/g, ""),
+    packCounts: packCounts?.length ? packCounts.sort((left, right) => left - right) : null,
+    priceBasis
+  };
+}
+
+function getComparablePrice(product, rule) {
+  if (rule?.priceBasis === "perBox") {
+    return product.attributes?.packCount > 0
+      ? product.price / product.attributes.packCount
+      : null;
+  }
+  if (rule?.priceBasis === "perUnit") {
+    const packCount = product.attributes?.packCount;
+    const unitsPerPack = product.attributes?.unitsPerPack;
+    return packCount > 0 && unitsPerPack > 0
+      ? product.price / (packCount * unitsPerPack)
+      : null;
+  }
+  return product.price;
 }
 
 function waitForTabComplete(tabId) {

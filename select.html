@@ -23,8 +23,35 @@
         </label>
         <p class="field-hint">多个词用空格或逗号分隔，商品标题必须同时包含这些词。</p>
         <label>
+          剂型
+          <input id="dosage-form" type="text" placeholder="例如：凝胶">
+        </label>
+        <label>
+          规格/浓度
+          <input id="strength" type="text" placeholder="例如：4%">
+        </label>
+        <p class="field-hint">程序会从标题中解析这些属性，再按字段分别匹配。</p>
+        <label>
+          允许装量
+          <select id="pack-mode">
+            <option value="all">不限盒数</option>
+            <option value="selected">只匹配代表商品的盒数</option>
+            <option value="custom">自定义盒数</option>
+          </select>
+        </label>
+        <input id="pack-counts" class="pack-counts" type="text" placeholder="例如：1,2,3" disabled>
+        <p class="field-hint">选择“自定义”后填写盒数；例如 1,2,3 会匹配一盒、两盒和三盒。</p>
+        <label>
           排除的关键词（可选）
           <input id="exclude-keywords" type="text" placeholder="例如：膜 栓">
+        </label>
+        <label>
+          价格计算方式
+          <select id="price-basis">
+            <option value="total">按商品总价</option>
+            <option value="perBox">按平均每盒价格</option>
+            <option value="perUnit">按平均每个单位价格</option>
+          </select>
         </label>
         <p class="field-hint">商品标题包含任意排除词时，不会参与监控。</p>
       </section>
@@ -37,7 +64,7 @@
       <section id="products" class="products"></section>
       <p id="message" class="message"></p>
       <button id="confirm" class="confirm" type="button">按此类型创建监控</button>
-      <p class="hint">只会监控你勾选的 SKU。当前读取京东搜索结果第一页。</p>
+      <p class="hint">勾选的是代表性商品；真正监控范围由上面的类型和装量规则决定。当前读取京东搜索结果第一页。</p>
     </main>
     <script src="select.js"></script>
   </body>

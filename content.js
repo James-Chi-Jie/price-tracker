@@ -51,7 +51,7 @@ function parseSearchItem(item) {
   const price = extractSearchPrice(item);
 
   if (!id || !url || !title || !Number.isFinite(price) || price <= 0) return null;
-  return { id, url, title, price };
+  return { id, url, title, price, attributes: extractProductAttributes(title) };
 }
 
 function extractSearchPrice(item) {
@@ -92,4 +92,25 @@ function parsePrice(text) {
   const normalized = text.replace(/,/g, "").replace(/\s+/g, " ");
   const match = normalized.match(/(?:¥|￥)?\s*(\d+(?:\.\d{1,2})?)/);
   return match ? Number(match[1]) : null;
+}
+
+function extractProductAttributes(title) {
+  const text = String(title || "");
+  const dosageForms = [
+    "滴眼液", "口服液", "洗眼液", "凝胶", "胶囊", "软膏", "乳膏",
+    "喷雾", "贴剂", "栓", "膜", "片", "丸", "粉", "液", "贴"
+  ];
+  const dosageForm = dosageForms.find((form) => text.includes(form)) || null;
+  const strengthMatch = text.match(/(\d+(?:\.\d+)?)\s*(mg|毫克|g|克|ml|毫升|%)/i);
+  const packMatch = text.match(/(\d+)\s*盒(?:装|套)?/i);
+  const unitMatch = text.match(/(?:\*|×|x)\s*(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i)
+    || text.match(/(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i);
+
+  return {
+    dosageForm,
+    strength: strengthMatch ? `${strengthMatch[1]}${strengthMatch[2]}` : null,
+    packCount: packMatch ? Number(packMatch[1]) : null,
+    unitsPerPack: unitMatch ? Number(unitMatch[1]) : null,
+    unitType: unitMatch?.[2] || null
+  };
 }
