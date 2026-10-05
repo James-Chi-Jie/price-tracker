@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "京东低价预警",
-  "version": "0.7.1",
+  "version": "0.7.2",
   "description": "在本地浏览器中定时搜索京东商品，并在价格低于阈值时提醒。",
   "icons": {
     "128": "icon128.png"

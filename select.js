@@ -64,7 +64,15 @@ function renderOptions() {
       checkbox.dataset.filterKey = group.key;
       checkbox.value = value;
       const text = document.createElement("span");
-      text.textContent = `${group.format(value)}（${counts.get(value)}个结果）`;
+      const isOnlyOption = values.length === 1;
+      if (isOnlyOption) {
+        checkbox.checked = true;
+        checkbox.disabled = true;
+        label.classList.add("option-auto");
+      }
+      text.textContent = isOnlyOption
+        ? `${group.format(value)}（${counts.get(value)}个结果，已自动选择）`
+        : `${group.format(value)}（${counts.get(value)}个结果）`;
       label.append(checkbox, text);
       list.appendChild(label);
     }

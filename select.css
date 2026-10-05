@@ -53,6 +53,14 @@ h2 { margin: 0 0 10px; font-size: 16px; }
   cursor: pointer;
   font-size: 13px;
 }
+.option-auto {
+  border-color: #9bbcf2;
+  background: #eef5ff;
+  cursor: default;
+}
+.option-auto input {
+  accent-color: #1677ff;
+}
 .option input { width: auto; margin: 0; }
 .field-hint { margin: 4px 0 0; color: #667085; font-size: 12px; }
 .section-title { margin-top: 24px; }
