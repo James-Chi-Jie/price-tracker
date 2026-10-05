@@ -7,6 +7,7 @@ const selectAllButton = document.querySelector("#select-all");
 const clearAllButton = document.querySelector("#clear-all");
 const excludeKeywordsInput = document.querySelector("#exclude-keywords");
 const priceBasisSelect = document.querySelector("#price-basis");
+const thresholdInput = document.querySelector("#threshold");
 
 let draft = null;
 
@@ -21,7 +22,7 @@ async function init() {
     return;
   }
 
-  summaryEl.textContent = `产品名：${draft.keyword}　目标价格：¥${Number(draft.threshold).toFixed(2)}　共 ${draft.products.length} 个结果`;
+  summaryEl.textContent = `产品名：${draft.keyword}　共 ${draft.products.length} 个结果`;
   renderOptions();
   renderProducts();
 }
@@ -101,7 +102,7 @@ function renderProducts() {
     const meta = document.createElement("div");
     meta.className = "product-meta";
     const price = document.createElement("span");
-    price.className = `product-price${product.price < Number(draft.threshold) ? " product-low" : ""}`;
+    price.className = "product-price";
     price.textContent = `¥${Number(product.price).toFixed(2)}`;
     const sku = document.createElement("span");
     sku.textContent = `SKU ${product.id}`;
@@ -125,10 +126,36 @@ function renderProducts() {
     link.addEventListener("click", (event) => event.stopPropagation());
 
     label.append(checkbox, content, link);
-    productsEl.appendChild(label);
+  productsEl.appendChild(label);
   }
   updateSelectedCount();
+  updatePriceHighlights();
 }
+
+selectLowButton.addEventListener("click", () => {
+  const threshold = getThreshold();
+  if (threshold === null) {
+    showMessage("请先填写有效的目标价格", true);
+    thresholdInput.focus();
+    return;
+  }
+
+  let selected = 0;
+  for (const product of draft.products) {
+    const card = [...productsEl.querySelectorAll(".product")]
+      .find((item) => item.dataset.id === String(product.id));
+    const checkbox = card?.querySelector("input[type=checkbox]");
+    const comparisonPrice = getComparablePrice(product);
+    const isLow = comparisonPrice !== null && comparisonPrice < threshold;
+    if (checkbox) checkbox.checked = isLow;
+    if (isLow) selected += 1;
+  }
+  updateSelectedCount();
+  showMessage(`已选中 ${selected} 个低于目标价格的预览商品`);
+});
+
+thresholdInput.addEventListener("input", updatePriceHighlights);
+priceBasisSelect.addEventListener("change", updatePriceHighlights);
 
 selectAllButton.addEventListener("click", () => {
   for (const checkbox of productsEl.querySelectorAll("input[type=checkbox]")) checkbox.checked = true;
@@ -141,6 +168,13 @@ clearAllButton.addEventListener("click", () => {
 });
 
 confirmButton.addEventListener("click", async () => {
+  const threshold = getThreshold();
+  if (threshold === null) {
+    showMessage("请先填写有效的目标价格", true);
+    thresholdInput.focus();
+    return;
+  }
+
   const productIds = [...productsEl.querySelectorAll("input:checked")].map((input) => input.value);
   const includeKeywords = splitKeywords(draft.keyword);
   const excludeKeywords = splitKeywords(excludeKeywordsInput.value);
@@ -158,7 +192,8 @@ confirmButton.addEventListener("click", async () => {
     productIds,
     includeKeywords,
     excludeKeywords,
-    variantRule
+    variantRule,
+    threshold
   });
   confirmButton.disabled = false;
   if (!result?.ok) {
@@ -175,6 +210,41 @@ function getOptionValues(key) {
 function updateSelectedCount() {
   const count = productsEl.querySelectorAll("input:checked").length;
   selectedCountEl.textContent = `已选 ${count} 个预览商品（不影响监控范围）`;
+}
+
+function getThreshold() {
+  const threshold = Number(thresholdInput.value);
+  return Number.isFinite(threshold) && threshold > 0 ? threshold : null;
+}
+
+function getComparablePrice(product) {
+  const price = Number(product.price);
+  if (!Number.isFinite(price)) return null;
+  if (priceBasisSelect.value === "perBox") {
+    const packCount = Number(product.attributes?.packCount);
+    return packCount > 0 ? price / packCount : null;
+  }
+  if (priceBasisSelect.value === "perUnit") {
+    const packCount = Number(product.attributes?.packCount);
+    const unitsPerPack = Number(product.attributes?.unitsPerPack);
+    return packCount > 0 && unitsPerPack > 0
+      ? price / (packCount * unitsPerPack)
+      : null;
+  }
+  return price;
+}
+
+function updatePriceHighlights() {
+  const threshold = getThreshold();
+  for (const card of productsEl.querySelectorAll(".product")) {
+    const product = draft?.products.find((item) => String(item.id) === card.dataset.id);
+    const priceElement = card.querySelector(".product-price");
+    const comparisonPrice = product ? getComparablePrice(product) : null;
+    priceElement?.classList.toggle(
+      "product-low",
+      threshold !== null && comparisonPrice !== null && comparisonPrice < threshold
+    );
+  }
 }
 
 function splitKeywords(value) {

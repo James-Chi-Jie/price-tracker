@@ -24,7 +24,7 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "START_PRODUCT_SELECTION") {
-    startProductSelection(message.keyword, message.threshold)
+    startProductSelection(message.keyword)
       .then((result) => sendResponse({ ok: true, result }))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
@@ -35,7 +35,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       message.productIds,
       message.includeKeywords,
       message.excludeKeywords,
-      message.variantRule
+      message.variantRule,
+      message.threshold
     )
       .then((result) => sendResponse({ ok: true, result }))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
@@ -81,13 +82,9 @@ async function checkAllMonitors() {
   }
 }
 
-async function startProductSelection(keyword, threshold) {
+async function startProductSelection(keyword) {
   const normalizedKeyword = String(keyword || "").trim();
-  const normalizedThreshold = Number(threshold);
   if (!normalizedKeyword) throw new Error("监控关键词不能为空");
-  if (!Number.isFinite(normalizedThreshold) || normalizedThreshold <= 0) {
-    throw new Error("请输入有效的目标价格");
-  }
 
   const products = await searchProducts(normalizedKeyword);
   if (!products.length) {
@@ -97,7 +94,6 @@ async function startProductSelection(keyword, threshold) {
   await chrome.storage.local.set({
     selectionDraft: {
       keyword: normalizedKeyword,
-      threshold: normalizedThreshold,
       products,
       createdAt: Date.now()
     }
@@ -130,9 +126,19 @@ async function searchProducts(keyword) {
   }
 }
 
-async function createMonitorFromSelection(productIds, includeKeywords, excludeKeywords, variantRule) {
+async function createMonitorFromSelection(
+  productIds,
+  includeKeywords,
+  excludeKeywords,
+  variantRule,
+  threshold
+) {
   const { selectionDraft } = await chrome.storage.local.get({ selectionDraft: null });
   if (!selectionDraft?.products?.length) throw new Error("商品选择已过期，请重新搜索");
+  const normalizedThreshold = Number(threshold);
+  if (!Number.isFinite(normalizedThreshold) || normalizedThreshold <= 0) {
+    throw new Error("请输入有效的目标价格");
+  }
 
   const ids = new Set((Array.isArray(productIds) ? productIds : []).map(String));
   const selectedProducts = selectionDraft.products.filter((product) => ids.has(String(product.id)));
@@ -147,7 +153,7 @@ async function createMonitorFromSelection(productIds, includeKeywords, excludeKe
     id: crypto.randomUUID(),
     platform: "jd",
     keyword: selectionDraft.keyword,
-    threshold: selectionDraft.threshold,
+    threshold: normalizedThreshold,
     matchRule,
     exampleProducts: selectedProducts,
     matches: {},

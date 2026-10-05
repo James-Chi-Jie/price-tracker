@@ -1,22 +1,18 @@
 const form = document.querySelector("#monitor-form");
 const keywordInput = document.querySelector("#keyword");
-const thresholdInput = document.querySelector("#threshold");
 const monitorsEl = document.querySelector("#monitors");
 const messageEl = document.querySelector("#message");
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const keyword = keywordInput.value.trim();
-  const threshold = Number(thresholdInput.value);
 
   if (!keyword) return showMessage("请输入商品关键词");
-  if (!Number.isFinite(threshold) || threshold <= 0) return showMessage("请输入有效的目标价格");
 
   showMessage("正在读取京东搜索结果…");
   const result = await chrome.runtime.sendMessage({
     type: "START_PRODUCT_SELECTION",
-    keyword,
-    threshold
+    keyword
   });
   if (result?.ok) {
     form.reset();
