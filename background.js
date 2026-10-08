@@ -112,23 +112,25 @@ async function searchProducts(keyword) {
 
   const products = [];
   const seen = new Set();
-  const tab = await chrome.tabs.create({
+  const searchWindow = await chrome.windows.create({
     url: adapter.buildSearchUrl(keyword, 1),
-    active: false
+    focused: false,
+    state: "minimized",
+    type: "popup"
   });
+  const tabId = searchWindow.tabs?.[0]?.id;
+  if (!tabId) throw new Error("无法创建后台搜索窗口");
   let pagesLoaded = 0;
   try {
     for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
       if (page > 1) {
-        await chrome.tabs.update(tab.id, {
-          url: adapter.buildSearchUrl(keyword, page),
-          active: false
-        });
+        await navigateTab(tabId, adapter.buildSearchUrl(keyword, page));
+      } else {
+        await waitForTabComplete(tabId);
       }
 
-      await waitForTabComplete(tab.id);
       await sleep(1500);
-      const response = await chrome.tabs.sendMessage(tab.id, {
+      const response = await chrome.tabs.sendMessage(tabId, {
         type: "READ_SEARCH_RESULTS",
         platform: adapter.id
       });
@@ -155,7 +157,7 @@ async function searchProducts(keyword) {
     }
     return { products, pagesLoaded };
   } finally {
-    await chrome.tabs.remove(tab.id).catch(() => {});
+    await chrome.windows.remove(searchWindow.id).catch(() => {});
   }
 }
 
@@ -483,6 +485,31 @@ function waitForTabComplete(tabId) {
     chrome.tabs.get(tabId).then((tab) => {
       if (tab.status === "complete") finish();
     }).catch(() => finish(new Error("无法读取浏览器标签页状态")));
+  });
+}
+
+function navigateTab(tabId, url) {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    let sawLoading = false;
+    const timeout = setTimeout(() => finish(new Error("页面加载超时")), TAB_TIMEOUT_MS);
+
+    function finish(error) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeout);
+      chrome.tabs.onUpdated.removeListener(listener);
+      error ? reject(error) : resolve();
+    }
+
+    function listener(updatedTabId, changeInfo) {
+      if (updatedTabId !== tabId) return;
+      if (changeInfo.status === "loading") sawLoading = true;
+      if (changeInfo.status === "complete" && sawLoading) finish();
+    }
+
+    chrome.tabs.onUpdated.addListener(listener);
+    chrome.tabs.update(tabId, { url, active: false }).catch((error) => finish(error));
   });
 }
 
