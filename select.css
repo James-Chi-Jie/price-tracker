@@ -73,6 +73,11 @@ h2 { margin: 0 0 10px; font-size: 16px; }
 .option-auto input {
   accent-color: #1677ff;
 }
+.option-unavailable {
+  border-color: #e1e1e1;
+  background: #f4f4f4;
+  color: #999;
+}
 .option input { width: auto; margin: 0; }
 .field-hint { margin: 4px 0 0; color: #667085; font-size: 12px; }
 .section-title { margin-top: 24px; }

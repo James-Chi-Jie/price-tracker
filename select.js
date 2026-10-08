@@ -26,6 +26,7 @@ async function init() {
 
   summaryEl.textContent = `产品名：${draft.keyword}　共 ${draft.products.length} 个结果`;
   renderOptions();
+  updateOptionAvailability();
   renderThresholds();
   renderProducts();
 }
@@ -70,6 +71,8 @@ function renderOptions() {
       checkbox.value = value;
       const text = document.createElement("span");
       const isOnlyOption = values.length === 1;
+      checkbox.dataset.autoSelected = isOnlyOption ? "true" : "false";
+      text.dataset.optionFormat = group.format(value);
       if (isOnlyOption) {
         checkbox.checked = true;
         checkbox.disabled = true;
@@ -81,6 +84,7 @@ function renderOptions() {
       label.append(checkbox, text);
       list.appendChild(label);
       checkbox.addEventListener("change", () => {
+        updateOptionAvailability();
         renderThresholds();
         renderProducts();
         updatePriceHighlights();
@@ -102,6 +106,17 @@ function renderThresholds() {
   }
   thresholdsEl.innerHTML = "";
   const values = variants.size ? [...variants.entries()] : [["default", "未识别规格"]];
+
+  if (!variants.size) {
+    thresholdsEl.innerHTML = '<p class="muted">当前筛选组合没有匹配的商品，暂时不能设置目标价格。</p>';
+    thresholdHintEl.textContent = "请取消一个冲突的选项，或改选有结果的规格组合。";
+    confirmButton.disabled = true;
+    selectLowButton.disabled = true;
+    return;
+  }
+
+  confirmButton.disabled = false;
+  selectLowButton.disabled = false;
 
   for (const [variantKey, variantLabel] of values) {
     const label = document.createElement("label");
@@ -208,6 +223,7 @@ selectLowButton.addEventListener("click", () => {
 
 priceBasisSelect.addEventListener("change", updatePriceHighlights);
 excludeKeywordsInput.addEventListener("input", () => {
+  updateOptionAvailability();
   renderThresholds();
   renderProducts();
   updatePriceHighlights();
@@ -271,6 +287,7 @@ function updateSelectedCount() {
 
 function getThresholdRules() {
   const inputs = [...thresholdsEl.querySelectorAll("input[data-variant-threshold]")];
+  if (!inputs.length || !getEligiblePreviewProducts().length) return null;
   const rules = { default: null, byVariant: {} };
   for (const input of inputs) {
     const threshold = Number(input.value);
@@ -279,6 +296,38 @@ function getThresholdRules() {
     else rules.byVariant[input.dataset.variantThreshold] = threshold;
   }
   return rules;
+}
+
+function updateOptionAvailability() {
+  for (const checkbox of document.querySelectorAll("input[data-filter-key]")) {
+    const label = checkbox.closest("label");
+    const text = label?.querySelector("span");
+    const candidates = getProductsMatchingOtherOptions(checkbox.dataset.filterKey);
+    const count = candidates.filter((product) => {
+      return String(product.attributes?.[checkbox.dataset.filterKey] ?? "") === checkbox.value;
+    }).length;
+    const isUnavailable = count === 0;
+    if (checkbox.dataset.autoSelected !== "true") checkbox.disabled = isUnavailable && !checkbox.checked;
+    label?.classList.toggle("option-unavailable", isUnavailable);
+    if (text) {
+      const suffix = checkbox.dataset.autoSelected === "true" ? "，已自动选择" : "";
+      text.textContent = isUnavailable
+        ? `${text.dataset.optionFormat}（当前组合无匹配）${checkbox.checked ? suffix : ""}`
+        : `${text.dataset.optionFormat}（${count}个结果${checkbox.dataset.autoSelected === "true" ? "，已自动选择" : ""}）`;
+    }
+  }
+}
+
+function getProductsMatchingOtherOptions(exceptKey) {
+  const keys = ["dosageForm", "strength", "unitSpec", "packCount"];
+  return draft.products.filter((product) => {
+    const attributes = product.attributes || {};
+    return keys.every((key) => {
+      if (key === exceptKey) return true;
+      const values = getOptionValues(key);
+      return !values.length || values.includes(String(attributes[key] ?? ""));
+    });
+  });
 }
 
 function getThresholdForProduct(product, rules) {
