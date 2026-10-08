@@ -82,6 +82,7 @@ function renderOptions() {
       list.appendChild(label);
       checkbox.addEventListener("change", () => {
         renderThresholds();
+        renderProducts();
         updatePriceHighlights();
       });
     }
@@ -127,7 +128,13 @@ function renderThresholds() {
 
 function renderProducts() {
   productsEl.innerHTML = "";
-  for (const product of draft.products) {
+  const visibleProducts = getEligiblePreviewProducts();
+  if (!visibleProducts.length) {
+    productsEl.innerHTML = '<p class="muted">当前条件没有匹配的预览商品，请调整上面的选项。</p>';
+    updateSelectedCount();
+    return;
+  }
+  for (const product of visibleProducts) {
     const label = document.createElement("label");
     label.className = "product";
     label.dataset.id = product.id;
@@ -202,6 +209,7 @@ selectLowButton.addEventListener("click", () => {
 priceBasisSelect.addEventListener("change", updatePriceHighlights);
 excludeKeywordsInput.addEventListener("input", () => {
   renderThresholds();
+  renderProducts();
   updatePriceHighlights();
 });
 
