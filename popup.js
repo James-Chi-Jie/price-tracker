@@ -2,6 +2,7 @@ const form = document.querySelector("#monitor-form");
 const keywordInput = document.querySelector("#keyword");
 const monitorsEl = document.querySelector("#monitors");
 const messageEl = document.querySelector("#message");
+const SEARCH_TIMEOUT_MS = 90000;
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -10,15 +11,28 @@ form.addEventListener("submit", async (event) => {
   if (!keyword) return showMessage("请输入商品关键词");
 
   showMessage("正在读取京东搜索结果…");
-  const result = await chrome.runtime.sendMessage({
-    type: "START_PRODUCT_SELECTION",
-    keyword
-  });
-  if (result?.ok) {
-    form.reset();
-    showMessage("已打开商品选择页");
-  } else {
-    showMessage(`搜索失败：${result?.error || "未知错误"}`);
+  try {
+    const result = await sendMessageWithTimeout({
+      type: "START_PRODUCT_SELECTION",
+      keyword
+    }, SEARCH_TIMEOUT_MS);
+    if (result?.ok) {
+      form.reset();
+      showMessage("已打开商品选择页");
+    } else {
+      showMessage(`搜索失败：${result?.error || "未知错误"}`);
+    }
+  } catch (error) {
+    showMessage(`搜索失败：${error.message}`);
+  }
+});
+
+chrome.storage.onChanged.addListener((changes, areaName) => {
+  if (areaName !== "local" || !changes.searchStatus?.newValue) return;
+  const status = changes.searchStatus.newValue;
+  if (status.state === "searching") {
+    const pageText = status.page ? `第 ${status.page}/${status.totalPages} 页` : "准备中";
+    showMessage(`正在读取京东搜索结果：${pageText}…`);
   }
 });
 
@@ -118,6 +132,15 @@ monitorsEl.addEventListener("click", async (event) => {
 
 function showMessage(message) {
   messageEl.textContent = message;
+}
+
+function sendMessageWithTimeout(message, timeoutMs) {
+  return Promise.race([
+    chrome.runtime.sendMessage(message),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("搜索超时，请重新加载扩展后重试")), timeoutMs);
+    })
+  ]);
 }
 
 function getLatestProducts(monitor) {

@@ -5,6 +5,7 @@ const DEFAULT_INTERVAL_MINUTES = 30;
 const TAB_TIMEOUT_MS = 25000;
 const MAX_SEARCH_PAGES = 3;
 const SEARCH_PAGE_DELAY_MS = 1200;
+const TAB_MESSAGE_TIMEOUT_MS = 20000;
 
 chrome.runtime.onInstalled.addListener(() => ensureAlarm());
 chrome.runtime.onStartup.addListener(() => ensureAlarm());
@@ -88,27 +89,51 @@ async function startProductSelection(keyword) {
   const normalizedKeyword = String(keyword || "").trim();
   if (!normalizedKeyword) throw new Error("监控关键词不能为空");
 
-  const searchResult = await searchProducts(normalizedKeyword);
-  const products = searchResult.products;
-  if (!products.length) {
-    throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
-  }
-
-  await chrome.storage.local.set({
-    selectionDraft: {
-      keyword: normalizedKeyword,
-      products,
-      pagesLoaded: searchResult.pagesLoaded,
-      pageStats: searchResult.pageStats,
-      createdAt: Date.now()
-    }
+  await setSearchStatus({
+    state: "searching",
+    keyword: normalizedKeyword,
+    page: 0,
+    totalPages: MAX_SEARCH_PAGES,
+    pageStats: []
   });
-  await chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true });
-  return {
-    count: products.length,
-    pagesLoaded: searchResult.pagesLoaded,
-    pageStats: searchResult.pageStats
-  };
+  try {
+    const searchResult = await searchProducts(normalizedKeyword);
+    const products = searchResult.products;
+    if (!products.length) {
+      throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
+    }
+
+    await chrome.storage.local.set({
+      selectionDraft: {
+        keyword: normalizedKeyword,
+        products,
+        pagesLoaded: searchResult.pagesLoaded,
+        pageStats: searchResult.pageStats,
+        createdAt: Date.now()
+      }
+    });
+    await chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true });
+    await setSearchStatus({
+      state: "done",
+      keyword: normalizedKeyword,
+      page: searchResult.pagesLoaded,
+      totalPages: MAX_SEARCH_PAGES,
+      count: products.length,
+      pageStats: searchResult.pageStats
+    });
+    return {
+      count: products.length,
+      pagesLoaded: searchResult.pagesLoaded,
+      pageStats: searchResult.pageStats
+    };
+  } catch (error) {
+    await setSearchStatus({
+      state: "error",
+      keyword: normalizedKeyword,
+      error: error.message
+    });
+    throw error;
+  }
 }
 
 async function searchProducts(keyword) {
@@ -129,8 +154,16 @@ async function searchProducts(keyword) {
   let pagesLoaded = 0;
   try {
     for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
+      await setSearchStatus({
+        state: "searching",
+        keyword,
+        page,
+        totalPages: MAX_SEARCH_PAGES,
+        pagesLoaded,
+        pageStats
+      });
       if (page > 1) {
-        const pageResponse = await chrome.tabs.sendMessage(tabId, {
+        const pageResponse = await sendTabMessage(tabId, {
           type: "GO_TO_SEARCH_PAGE",
           page
         });
@@ -142,7 +175,7 @@ async function searchProducts(keyword) {
       }
 
       await sleep(1500);
-      const response = await chrome.tabs.sendMessage(tabId, {
+      const response = await sendTabMessage(tabId, {
         type: "READ_SEARCH_RESULTS",
         platform: adapter.id,
         expectedPage: page
@@ -166,6 +199,14 @@ async function searchProducts(keyword) {
         console.warn(`京东第 ${page} 页返回了重复结果，可能触发了分页重定向或验证`);
       }
       pageStats.push({ page, received: pageProducts.length, newProducts });
+      await setSearchStatus({
+        state: "searching",
+        keyword,
+        page,
+        totalPages: MAX_SEARCH_PAGES,
+        pagesLoaded,
+        pageStats
+      });
       if (!pageProducts.length) break;
       if (page < MAX_SEARCH_PAGES) await sleep(SEARCH_PAGE_DELAY_MS);
     }
@@ -173,6 +214,19 @@ async function searchProducts(keyword) {
   } finally {
     await chrome.windows.remove(searchWindow.id).catch(() => {});
   }
+}
+
+function sendTabMessage(tabId, message) {
+  return Promise.race([
+    chrome.tabs.sendMessage(tabId, message),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("京东页面响应超时，请刷新扩展后重试")), TAB_MESSAGE_TIMEOUT_MS);
+    })
+  ]);
+}
+
+async function setSearchStatus(status) {
+  await chrome.storage.local.set({ searchStatus: { ...status, updatedAt: Date.now() } });
 }
 
 async function createMonitorFromSelection(
