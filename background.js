@@ -130,7 +130,13 @@ async function searchProducts(keyword) {
   try {
     for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
       if (page > 1) {
-        await navigateTab(tabId, adapter.buildSearchUrl(keyword, page));
+        const pageResponse = await chrome.tabs.sendMessage(tabId, {
+          type: "GO_TO_SEARCH_PAGE",
+          page
+        });
+        if (!pageResponse?.ok) {
+          throw new Error(pageResponse?.error || `未能切换到京东第 ${page} 页`);
+        }
       } else {
         await waitForTabComplete(tabId);
       }
@@ -138,7 +144,8 @@ async function searchProducts(keyword) {
       await sleep(1500);
       const response = await chrome.tabs.sendMessage(tabId, {
         type: "READ_SEARCH_RESULTS",
-        platform: adapter.id
+        platform: adapter.id,
+        expectedPage: page
       });
       if (!Array.isArray(response?.products)) {
         throw new Error(response?.error || `未能读取京东第 ${page} 页搜索结果`);
@@ -492,31 +499,6 @@ function waitForTabComplete(tabId) {
     chrome.tabs.get(tabId).then((tab) => {
       if (tab.status === "complete") finish();
     }).catch(() => finish(new Error("无法读取浏览器标签页状态")));
-  });
-}
-
-function navigateTab(tabId, url) {
-  return new Promise((resolve, reject) => {
-    let finished = false;
-    let sawLoading = false;
-    const timeout = setTimeout(() => finish(new Error("页面加载超时")), TAB_TIMEOUT_MS);
-
-    function finish(error) {
-      if (finished) return;
-      finished = true;
-      clearTimeout(timeout);
-      chrome.tabs.onUpdated.removeListener(listener);
-      error ? reject(error) : resolve();
-    }
-
-    function listener(updatedTabId, changeInfo) {
-      if (updatedTabId !== tabId) return;
-      if (changeInfo.status === "loading") sawLoading = true;
-      if (changeInfo.status === "complete" && sawLoading) finish();
-    }
-
-    chrome.tabs.onUpdated.addListener(listener);
-    chrome.tabs.update(tabId, { url, active: false }).catch((error) => finish(error));
   });
 }
 

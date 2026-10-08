@@ -1,15 +1,22 @@
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "GO_TO_SEARCH_PAGE") {
+    goToSearchPage(Number(message.page))
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
   if (message?.type !== "READ_SEARCH_RESULTS") return;
 
-  readJdSearchResults()
+  readJdSearchResults(Number(message.expectedPage) || null)
     .then(sendResponse)
     .catch((error) => sendResponse({ error: error.message }));
 
   return true;
 });
 
-async function readJdSearchResults() {
-  await waitForSearchResults();
+async function readJdSearchResults(expectedPage = null) {
+  await waitForSearchResults(expectedPage);
   const items = [...document.querySelectorAll("[data-sku], li.gl-item, .gl-item")];
   const seen = new Set();
   const products = [];
@@ -24,10 +31,90 @@ async function readJdSearchResults() {
   return { products };
 }
 
-async function waitForSearchResults() {
+async function goToSearchPage(page) {
+  if (!Number.isInteger(page) || page < 1) throw new Error("无效的京东页码");
+  if (getCurrentSearchPage() === page) return { ok: true, page };
+
+  const input = await waitForPaginationInput();
+  if (!input) throw new Error("未找到京东分页输入框");
+
+  const beforeIds = getSearchItemIds();
+  input.focus();
+  input.value = String(page);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+
+  const container = input.closest(".p-skip") || input.parentElement;
+  const confirmButton = container?.querySelector(".btn-default, .btn, button");
+  if (confirmButton) {
+    confirmButton.click();
+  } else {
+    input.dispatchEvent(new KeyboardEvent("keydown", {
+      key: "Enter",
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+      bubbles: true
+    }));
+  }
+
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    const currentPage = getCurrentSearchPage();
+    const currentIds = getSearchItemIds();
+    if (currentPage === page && currentIds.length) return { ok: true, page };
+    if (currentIds.length && currentIds.join(",") !== beforeIds.join(",")) {
+      return { ok: true, page: currentPage || page };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+
+  throw new Error(`京东第 ${page} 页加载超时`);
+}
+
+async function waitForPaginationInput() {
   const deadline = Date.now() + 10000;
   while (Date.now() < deadline) {
-    if (document.querySelector("li.gl-item, .gl-item, [data-sku]")) {
+    const input = findPaginationInput();
+    if (input) return input;
+    await new Promise((resolve) => setTimeout(resolve, 500));
+  }
+  return null;
+}
+
+function findPaginationInput() {
+  const candidates = [...document.querySelectorAll(
+    "#J_bottomPage input, #J_topPage input, .p-skip input, input.input-txt, input"
+  )];
+  return candidates.find((input) => {
+    const text = [
+      input.className,
+      input.parentElement?.textContent,
+      input.parentElement?.parentElement?.textContent
+    ].join(" ");
+    return /到第|页/.test(text) || /input-txt|p-skip/.test(String(input.className));
+  }) || null;
+}
+
+function getCurrentSearchPage() {
+  const current = document.querySelector(
+    "#J_bottomPage .p-num .curr, #J_topPage .p-num .curr, .p-num .curr, .p-num a.curr, .p-num b.curr"
+  );
+  const page = Number(current?.textContent?.trim());
+  return Number.isInteger(page) && page > 0 ? page : null;
+}
+
+function getSearchItemIds() {
+  return [...document.querySelectorAll("[data-sku], li.gl-item, .gl-item")]
+    .map((item) => item.getAttribute("data-sku") || "")
+    .filter(Boolean);
+}
+
+async function waitForSearchResults(expectedPage = null) {
+  const deadline = Date.now() + 10000;
+  while (Date.now() < deadline) {
+    const hasItems = document.querySelector("li.gl-item, .gl-item, [data-sku]");
+    if (hasItems && (!expectedPage || getCurrentSearchPage() === expectedPage)) {
       return;
     }
     await new Promise((resolve) => setTimeout(resolve, 500));
