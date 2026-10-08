@@ -99,11 +99,16 @@ async function startProductSelection(keyword) {
       keyword: normalizedKeyword,
       products,
       pagesLoaded: searchResult.pagesLoaded,
+      pageStats: searchResult.pageStats,
       createdAt: Date.now()
     }
   });
   await chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true });
-  return { count: products.length, pagesLoaded: searchResult.pagesLoaded };
+  return {
+    count: products.length,
+    pagesLoaded: searchResult.pagesLoaded,
+    pageStats: searchResult.pageStats
+  };
 }
 
 async function searchProducts(keyword) {
@@ -112,6 +117,7 @@ async function searchProducts(keyword) {
 
   const products = [];
   const seen = new Set();
+  const pageStats = [];
   const searchWindow = await chrome.windows.create({
     url: adapter.buildSearchUrl(keyword, 1),
     focused: false,
@@ -152,10 +158,11 @@ async function searchProducts(keyword) {
       if (page > 1 && pageProducts.length && newProducts === 0) {
         console.warn(`京东第 ${page} 页返回了重复结果，可能触发了分页重定向或验证`);
       }
+      pageStats.push({ page, received: pageProducts.length, newProducts });
       if (!pageProducts.length) break;
       if (page < MAX_SEARCH_PAGES) await sleep(SEARCH_PAGE_DELAY_MS);
     }
-    return { products, pagesLoaded };
+    return { products, pagesLoaded, pageStats };
   } finally {
     await chrome.windows.remove(searchWindow.id).catch(() => {});
   }

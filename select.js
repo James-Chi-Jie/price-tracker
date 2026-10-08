@@ -24,8 +24,12 @@ async function init() {
     return;
   }
 
-  const pagesLabel = draft.pagesLoaded ? `（已合并前 ${draft.pagesLoaded} 页）` : "";
-  summaryEl.textContent = `产品名：${draft.keyword}　共 ${draft.products.length} 个结果${pagesLabel}`;
+  const pageStatsLabel = Array.isArray(draft.pageStats) && draft.pageStats.length
+    ? `　分页：${draft.pageStats.map((item) => `第${item.page}页收到${item.received}条/新增${item.newProducts}条`).join("，")}`
+    : draft.pagesLoaded
+      ? `　已合并前 ${draft.pagesLoaded} 页`
+      : "";
+  summaryEl.textContent = `产品名：${draft.keyword}　去重后共 ${draft.products.length} 个结果${pageStatsLabel}`;
   renderOptions();
   updateOptionAvailability();
   renderThresholds();
