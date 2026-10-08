@@ -51,11 +51,13 @@ async function render() {
     const basisLabels = { total: "总价", perBox: "每盒价", perUnit: "每单位价" };
     const dosageForms = matchRule?.dosageForms || (matchRule?.dosageForm ? [matchRule.dosageForm] : []);
     const strengths = matchRule?.strengths || (matchRule?.strength ? [matchRule.strength] : []);
+    const unitSpecs = matchRule?.unitSpecs || (matchRule?.unitSpec ? [matchRule.unitSpec] : []);
     const scope = matchRule
       ? `类型匹配：必含 ${escapeHtml(matchRule.includeKeywords.join("、"))}`
         + (matchRule.excludeKeywords?.length ? `；排除 ${escapeHtml(matchRule.excludeKeywords.join("、"))}` : "")
         + (dosageForms.length ? `；剂型 ${escapeHtml(dosageForms.join("、"))}` : "")
         + (strengths.length ? `；规格 ${escapeHtml(strengths.join("、"))}` : "")
+        + (unitSpecs.length ? `；单包装 ${escapeHtml(unitSpecs.join("、"))}` : "")
         + (matchRule.packCounts?.length ? `；盒数 ${matchRule.packCounts.join("、")}` : "；盒数不限")
       : selectedProducts.length
         ? `旧版任务：仅匹配 ${selectedProducts.length} 个指定 SKU`
@@ -68,12 +70,13 @@ async function render() {
     const latestProductLinks = latestProducts.length
       ? `<details class="matches"><summary>查看 ${latestProducts.length} 个匹配商品</summary><ul>${latestProducts.map(renderProductLink).join("")}</ul></details>`
       : '<p class="muted">暂无最近一次检查结果</p>';
+    const targetSummary = renderTargetSummary(monitor);
 
     card.innerHTML = `
       <p class="title">京东：${escapeHtml(monitor.keyword)}</p>
       <p class="scope">${scope}</p>
       ${selectedSummary ? `<p class="products-summary">${selectedSummary}</p>` : ""}
-      <p>目标（${basisLabels[matchRule?.priceBasis || "total"]}）：¥${Number(monitor.threshold).toFixed(2)}　最低：${lowestPrice}</p>
+      <p>目标（${basisLabels[matchRule?.priceBasis || "total"]}）：${targetSummary}　最低：${lowestPrice}</p>
       <p>低价商品：${Number(monitor.eligibleCount || 0)} 个</p>
       ${latestProductLinks}
       ${monitor.missingSelectedCount ? `<p class="error">有 ${monitor.missingSelectedCount} 个商品暂不在搜索结果第一页</p>` : ""}
@@ -127,6 +130,30 @@ function renderProductLink(product) {
     ? `比较价 ¥${Number(product.comparisonPrice).toFixed(2)}`
     : `¥${Number(product.price).toFixed(2)}`;
   return `<li class="match-item"><a href="${escapeHtml(product.url)}" target="_blank" rel="noopener noreferrer">${escapeHtml(product.title)}</a><span>实际 ¥${Number(product.price).toFixed(2)} · ${comparison}</span></li>`;
+}
+
+function renderTargetSummary(monitor) {
+  const rules = monitor.thresholdRules;
+  if (rules?.byPack && Object.keys(rules.byPack).length) {
+    return Object.entries(rules.byPack)
+      .sort(([left], [right]) => Number(left) - Number(right))
+      .map(([pack, threshold]) => `${pack}盒 ¥${Number(threshold).toFixed(2)}`)
+      .join("；");
+  }
+  if (rules?.byVariant && Object.keys(rules.byVariant).length) {
+    return Object.entries(rules.byVariant)
+      .map(([variant, threshold]) => `${formatVariantKey(variant)} ¥${Number(threshold).toFixed(2)}`)
+      .join("；");
+  }
+  const threshold = Number(rules?.default ?? monitor.threshold);
+  return Number.isFinite(threshold) ? `¥${threshold.toFixed(2)}` : "未设置";
+}
+
+function formatVariantKey(value) {
+  const [strength, unitSpec, packCount] = String(value).split("|");
+  return [strength, unitSpec, packCount ? `${packCount}盒` : ""]
+    .filter((item) => item && item !== "null")
+    .join(" · ") || "规格待确认";
 }
 
 async function exportMonitor(id) {

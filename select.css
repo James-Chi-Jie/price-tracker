@@ -39,6 +39,18 @@ h2 { margin: 0 0 10px; font-size: 16px; }
   background: #fff;
   font: inherit;
 }
+.threshold-section { margin-top: 14px; }
+.threshold-heading { font-weight: 600; }
+.threshold-list { display: grid; gap: 8px; margin-top: 5px; }
+.threshold-item {
+  display: grid;
+  grid-template-columns: minmax(110px, 1fr) minmax(160px, 2fr);
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  font-weight: 600;
+}
+.threshold-item input { margin-top: 0; }
 .option-group { margin-top: 14px; }
 .option-title { margin-bottom: 6px; font-weight: 600; }
 .option-list { display: flex; flex-wrap: wrap; gap: 8px; }

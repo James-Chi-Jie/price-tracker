@@ -36,7 +36,7 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       message.includeKeywords,
       message.excludeKeywords,
       message.variantRule,
-      message.threshold
+      message.thresholdRules
     )
       .then((result) => sendResponse({ ok: true, result }))
       .catch((error) => sendResponse({ ok: false, error: error.message }));
@@ -131,14 +131,11 @@ async function createMonitorFromSelection(
   includeKeywords,
   excludeKeywords,
   variantRule,
-  threshold
+  thresholdRules
 ) {
   const { selectionDraft } = await chrome.storage.local.get({ selectionDraft: null });
   if (!selectionDraft?.products?.length) throw new Error("商品选择已过期，请重新搜索");
-  const normalizedThreshold = Number(threshold);
-  if (!Number.isFinite(normalizedThreshold) || normalizedThreshold <= 0) {
-    throw new Error("请输入有效的目标价格");
-  }
+  const normalizedThresholdRules = normalizeThresholdRules(thresholdRules);
 
   const ids = new Set((Array.isArray(productIds) ? productIds : []).map(String));
   const selectedProducts = selectionDraft.products.filter((product) => ids.has(String(product.id)));
@@ -153,7 +150,8 @@ async function createMonitorFromSelection(
     id: crypto.randomUUID(),
     platform: "jd",
     keyword: selectionDraft.keyword,
-    threshold: normalizedThreshold,
+    threshold: normalizedThresholdRules.default,
+    thresholdRules: normalizedThresholdRules,
     matchRule,
     exampleProducts: selectedProducts,
     matches: {},
@@ -215,9 +213,10 @@ async function checkMonitor(id) {
   const products = matchedProducts
     .map((product) => ({
       ...product,
-      comparisonPrice: getComparablePrice(product, matchRule)
+      comparisonPrice: getComparablePrice(product, matchRule),
+      threshold: getThresholdForProduct(product, monitor)
     }))
-    .filter((product) => Number.isFinite(product.comparisonPrice));
+    .filter((product) => Number.isFinite(product.comparisonPrice) && Number.isFinite(product.threshold));
   if (!products.length) {
     throw new Error("找到符合条件的商品，但无法解析其装量，暂时无法计算比较价格");
   }
@@ -227,12 +226,13 @@ async function checkMonitor(id) {
   const newlyMatched = [];
 
   for (const product of products) {
-    const isBelow = product.comparisonPrice < Number(monitor.threshold);
+    const isBelow = product.comparisonPrice < product.threshold;
     const previous = previousMatches[product.id] || {};
     nextMatches[product.id] = {
       title: product.title,
       price: product.price,
       comparisonPrice: product.comparisonPrice,
+      threshold: product.threshold,
       attributes: product.attributes,
       url: product.url,
       wasBelowThreshold: isBelow,
@@ -244,7 +244,7 @@ async function checkMonitor(id) {
   }
 
   const eligibleProducts = products
-    .filter((product) => product.comparisonPrice < Number(monitor.threshold))
+    .filter((product) => product.comparisonPrice < product.threshold)
     .sort((left, right) => left.comparisonPrice - right.comparisonPrice);
   const latestProducts = products.map((product) => ({
     id: product.id,
@@ -252,6 +252,7 @@ async function checkMonitor(id) {
     title: product.title,
     price: product.price,
     comparisonPrice: product.comparisonPrice,
+    threshold: product.threshold,
     attributes: product.attributes
   }));
   const patch = {
@@ -281,7 +282,7 @@ async function notifyMatches(monitor, products) {
   const notificationId = `price-${monitor.id}-${Date.now()}`;
   const visibleProducts = products.slice(0, 3);
   const message = visibleProducts
-    .map((product) => `${product.title.slice(0, 32)} ¥${product.price.toFixed(2)}（比较价 ¥${product.comparisonPrice.toFixed(2)}）`)
+    .map((product) => `${product.title.slice(0, 32)} ¥${product.price.toFixed(2)}（比较价 ¥${product.comparisonPrice.toFixed(2)}，目标 ¥${product.threshold.toFixed(2)}）`)
     .join("\n");
   const notificationTargets = await chrome.storage.local.get({ notificationTargets: {} });
   notificationTargets.notificationTargets[notificationId] = visibleProducts[0].url;
@@ -291,7 +292,7 @@ async function notifyMatches(monitor, products) {
     type: "basic",
     iconUrl: "icon128.png",
     title: `京东低价提醒：${monitor.keyword}`,
-    message: `${message}\n低于阈值 ¥${Number(monitor.threshold).toFixed(2)}，点击打开最低价商品`
+    message: `${message}\n点击打开匹配的低价商品`
   });
 }
 
@@ -318,6 +319,7 @@ function normalizeMatchRule(rule) {
   return normalized.includeKeywords.length
     || normalized.dosageForms?.length
     || normalized.strengths?.length
+    || normalized.unitSpecs?.length
     || normalized.packCounts?.length
     ? normalized
     : null;
@@ -332,9 +334,11 @@ function matchesRule(product, rule) {
     || rule.dosageForms.includes(String(attributes.dosageForm || "").toLowerCase());
   const strengthMatch = !rule.strengths?.length
     || rule.strengths.includes(String(attributes.strength || "").toLowerCase().replace(/\s+/g, ""));
+  const unitSpecMatch = !rule.unitSpecs?.length
+    || rule.unitSpecs.includes(String(attributes.unitSpec || "").toLowerCase().replace(/\s+/g, ""));
   const packMatch = !rule.packCounts?.length
     || rule.packCounts.includes(Number(attributes.packCount));
-  return keywordMatch && !excluded && dosageMatch && strengthMatch && packMatch;
+  return keywordMatch && !excluded && dosageMatch && strengthMatch && unitSpecMatch && packMatch;
 }
 
 function normalizeVariantRule(rule) {
@@ -349,25 +353,80 @@ function normalizeVariantRule(rule) {
     dosageForms: normalizeKeywords(value.dosageForms || (value.dosageForm ? [value.dosageForm] : [])),
     strengths: normalizeKeywords(value.strengths || (value.strength ? [value.strength] : []))
       .map((item) => item.replace(/\s+/g, "")),
+    unitSpecs: normalizeKeywords(value.unitSpecs || (value.unitSpec ? [value.unitSpec] : []))
+      .map((item) => item.replace(/\s+/g, "")),
     packCounts: packCounts?.length ? packCounts.sort((left, right) => left - right) : null,
     priceBasis
   };
 }
 
+function normalizeThresholdRules(value) {
+  const input = value && typeof value === "object" ? value : {};
+  const defaultValue = Number(input.default);
+  const normalized = {
+    default: Number.isFinite(defaultValue) && defaultValue > 0 ? defaultValue : null,
+    byVariant: {}
+  };
+  const variantEntries = input.byVariant || input.byPack || {};
+  if (variantEntries && typeof variantEntries === "object") {
+    for (const [variant, threshold] of Object.entries(variantEntries)) {
+      const amount = Number(threshold);
+      if (Number.isFinite(amount) && amount > 0) {
+        normalized.byVariant[String(variant)] = amount;
+      }
+    }
+  }
+  if (!normalized.default && !Object.keys(normalized.byVariant).length) {
+    throw new Error("请输入有效的目标价格");
+  }
+  if (Object.keys(normalized.byVariant).length && !normalized.default) {
+    normalized.default = null;
+  }
+  return normalized;
+}
+
+function getThresholdForProduct(product, monitor) {
+  const rules = monitor.thresholdRules || {
+    default: Number(monitor.threshold),
+    byVariant: {}
+  };
+  if (rules.byVariant && Object.keys(rules.byVariant).length) {
+    return Number(rules.byVariant[getVariantKey(product)]) || null;
+  }
+  if (rules.byPack && Object.keys(rules.byPack).length) {
+    return Number(rules.byPack[String(product.attributes?.packCount)]) || null;
+  }
+  return Number(rules.default) || null;
+}
+
+function getVariantKey(product) {
+  const attributes = product.attributes || {};
+  return [attributes.strength, attributes.unitSpec, attributes.packCount]
+    .map((value) => String(value ?? "").toLowerCase().replace(/\s+/g, ""))
+    .join("|") || "default";
+}
+
 function getComparablePrice(product, rule) {
   if (rule?.priceBasis === "perBox") {
-    return product.attributes?.packCount > 0
-      ? product.price / product.attributes.packCount
+    const packCount = getEffectiveBoxCount(product);
+    return packCount > 0
+      ? product.price / packCount
       : null;
   }
   if (rule?.priceBasis === "perUnit") {
-    const packCount = product.attributes?.packCount;
+    const packCount = getEffectiveBoxCount(product);
     const unitsPerPack = product.attributes?.unitsPerPack;
     return packCount > 0 && unitsPerPack > 0
       ? product.price / (packCount * unitsPerPack)
       : null;
   }
   return product.price;
+}
+
+function getEffectiveBoxCount(product) {
+  const packCount = Number(product.attributes?.packCount);
+  if (packCount > 0) return packCount;
+  return Number(product.attributes?.unitsPerPack) > 0 ? 1 : null;
 }
 
 function waitForTabComplete(tabId) {

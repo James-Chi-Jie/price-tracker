@@ -17,9 +17,10 @@
       </header>
       <section class="rule-box">
         <h2>从本次搜索结果中选择条件</h2>
-        <p class="field-hint">产品名沿用入口填写的内容。下面设置价格比较方式和目标价格，再选择你关心的变体属性；某一组不选择表示不限。</p>
+        <p class="field-hint">产品名沿用入口填写的内容。下面选择剂型、剂量规格、单包装数量和盒数；某一组不选择表示不限。</p>
         <div id="dosage-options" class="option-group"></div>
         <div id="strength-options" class="option-group"></div>
+        <div id="unit-options" class="option-group"></div>
         <div id="pack-options" class="option-group"></div>
         <label>
           排除的关键词（可选）
@@ -33,10 +34,11 @@
             <option value="perUnit">按平均每个单位价格</option>
           </select>
         </label>
-        <label>
-          目标价格（比较价低于此值时提醒）
-          <input id="threshold" type="number" min="0.01" step="0.01" placeholder="例如：200" required>
-        </label>
+        <div class="threshold-section">
+          <div class="threshold-heading">目标价格（比较价低于对应值时提醒）</div>
+          <div id="thresholds" class="threshold-list"></div>
+          <p id="threshold-hint" class="field-hint">系统会按识别出的规格组合分别设置目标价格。</p>
+        </div>
         <p class="field-hint">商品标题包含任意排除词时，不会参与监控；某类只有一个候选项时会自动选择。</p>
       </section>
       <h2 class="section-title">搜索结果预览</h2>

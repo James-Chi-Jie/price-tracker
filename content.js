@@ -101,16 +101,37 @@ function extractProductAttributes(title) {
     "喷雾", "贴剂", "栓", "膜", "片", "丸", "粉", "液", "贴"
   ];
   const dosageForm = dosageForms.find((form) => text.includes(form)) || null;
-  const strengthMatch = text.match(/(\d+(?:\.\d+)?)\s*(mg|毫克|g|克|ml|毫升|%)/i);
-  const packMatch = text.match(/(\d+)\s*盒(?:装|套)?/i);
+  const strengthMatch = extractPackageStrength(text);
+  const packMatch = text.match(/(\d+)\s*(?:盒|箱)(?:装|套)?/i);
   const unitMatch = text.match(/(?:\*|×|x)\s*(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i)
     || text.match(/(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i);
+  const unitsPerPack = unitMatch ? Number(unitMatch[1]) : null;
+  const unitType = unitMatch?.[2] || null;
 
   return {
     dosageForm,
     strength: strengthMatch ? `${strengthMatch[1]}${strengthMatch[2]}` : null,
     packCount: packMatch ? Number(packMatch[1]) : null,
-    unitsPerPack: unitMatch ? Number(unitMatch[1]) : null,
-    unitType: unitMatch?.[2] || null
+    unitsPerPack,
+    unitType,
+    unitSpec: unitsPerPack && unitType ? `${unitsPerPack}${unitType}` : null
   };
+}
+
+function extractPackageStrength(text) {
+  const candidates = [...text.matchAll(/(\d+(?:\.\d+)?)\s*(mg|毫克|g|克|ml|毫升|%)/gi)];
+  if (!candidates.length) return null;
+
+  const packageCandidate = candidates.find((match) => {
+    const end = match.index + match[0].length;
+    const after = text.slice(end, end + 12);
+    return /^\s*(?:\/\s*(?:袋|支|片|粒|贴|瓶|包)|[*×x]\s*\d+\s*(?:袋|支|片|粒|贴|瓶|包)?)/i.test(after);
+  });
+  if (packageCandidate) return packageCandidate;
+
+  const meaningfulCandidate = candidates.find((match) => {
+    const before = text.slice(Math.max(0, match.index - 8), match.index);
+    return !/(?:含|含有|成分|含量|每袋含|每支含|每片含)\s*$/i.test(before);
+  });
+  return meaningfulCandidate || candidates[0];
 }
