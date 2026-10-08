@@ -66,7 +66,7 @@ async function goToSearchPage(page) {
     if (currentIds.length && currentIds.join(",") !== beforeIds.join(",")) {
       return { ok: true, page: currentPage || page };
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 150));
   }
 
   throw new Error(`京东第 ${page} 页加载超时`);
@@ -77,7 +77,7 @@ async function waitForPaginationInput() {
   while (Date.now() < deadline) {
     const input = findPaginationInput();
     if (input) return input;
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
   return null;
 }
@@ -112,13 +112,16 @@ function getSearchItemIds() {
 
 async function waitForSearchResults(expectedPage = null) {
   const deadline = Date.now() + 10000;
+  const fallbackDeadline = Date.now() + 2500;
   while (Date.now() < deadline) {
     const hasItems = document.querySelector("li.gl-item, .gl-item, [data-sku]");
     if (hasItems && (!expectedPage || getCurrentSearchPage() === expectedPage)) {
       return;
     }
-    await new Promise((resolve) => setTimeout(resolve, 500));
+    if (hasItems && Date.now() >= fallbackDeadline) return;
+    await new Promise((resolve) => setTimeout(resolve, 200));
   }
+  throw new Error("京东搜索结果加载超时");
 }
 
 function parseSearchItem(item) {

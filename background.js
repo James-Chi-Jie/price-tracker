@@ -4,7 +4,7 @@ const ALARM_NAME = "jd-price-monitor";
 const DEFAULT_INTERVAL_MINUTES = 30;
 const TAB_TIMEOUT_MS = 25000;
 const MAX_SEARCH_PAGES = 3;
-const SEARCH_PAGE_DELAY_MS = 1200;
+const SEARCH_PAGE_DELAY_MS = 700;
 const TAB_MESSAGE_TIMEOUT_MS = 20000;
 
 chrome.runtime.onInstalled.addListener(() => ensureAlarm());
@@ -174,7 +174,6 @@ async function searchProducts(keyword) {
         await waitForTabComplete(tabId);
       }
 
-      await sleep(1500);
       const response = await sendTabMessage(tabId, {
         type: "READ_SEARCH_RESULTS",
         platform: adapter.id,
