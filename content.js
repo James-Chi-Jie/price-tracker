@@ -130,7 +130,8 @@ function extractProductAttributes(title) {
 }
 
 function extractPackageStrength(text) {
-  const candidates = [...text.matchAll(/(\d+(?:\.\d+)?)\s*(mg|毫克|g|克|ml|毫升|%)/gi)];
+  // 百分号通常来自“100%正品/好评”等卡片营销文案，不作为默认剂量规格。
+  const candidates = [...text.matchAll(/(\d+(?:\.\d+)?)\s*(mg|毫克|g|克|ml|毫升)/gi)];
   if (!candidates.length) return null;
 
   const packageCandidate = candidates.find((match) => {
