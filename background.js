@@ -3,6 +3,8 @@ importScripts("platforms/jd.js");
 const ALARM_NAME = "jd-price-monitor";
 const DEFAULT_INTERVAL_MINUTES = 30;
 const TAB_TIMEOUT_MS = 25000;
+const MAX_SEARCH_PAGES = 3;
+const SEARCH_PAGE_DELAY_MS = 1200;
 
 chrome.runtime.onInstalled.addListener(() => ensureAlarm());
 chrome.runtime.onStartup.addListener(() => ensureAlarm());
@@ -106,8 +108,27 @@ async function searchProducts(keyword) {
   const adapter = self.PriceAdapters?.jd;
   if (!adapter) throw new Error("暂不支持京东");
 
+  const products = [];
+  const seen = new Set();
+  for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
+    const pageProducts = await searchProductsPage(adapter, keyword, page);
+    for (const product of pageProducts) {
+      if (seen.has(String(product.id))) continue;
+      seen.add(String(product.id));
+      products.push(product);
+    }
+
+    if (!pageProducts.length || page < MAX_SEARCH_PAGES) {
+      await sleep(SEARCH_PAGE_DELAY_MS);
+    }
+    if (!pageProducts.length) break;
+  }
+  return products;
+}
+
+async function searchProductsPage(adapter, keyword, page) {
   const tab = await chrome.tabs.create({
-    url: adapter.buildSearchUrl(keyword),
+    url: adapter.buildSearchUrl(keyword, page),
     active: false
   });
   try {
@@ -118,7 +139,7 @@ async function searchProducts(keyword) {
       platform: adapter.id
     });
     if (!Array.isArray(response?.products)) {
-      throw new Error(response?.error || "未能读取京东搜索结果");
+      throw new Error(response?.error || `未能读取京东第 ${page} 页搜索结果`);
     }
     return response.products;
   } finally {
@@ -203,9 +224,9 @@ async function checkMonitor(id) {
   if (!matchedProducts.length) {
     throw new Error(
       matchRule
-        ? "当前搜索结果第一页没有符合匹配规则的商品"
+        ? "当前搜索结果前 3 页没有符合匹配规则的商品"
         : selectedProducts.length
-        ? "选中的商品不在当前搜索结果第一页，暂时无法确认价格"
+        ? "选中的商品不在当前搜索结果前 3 页，暂时无法确认价格"
         : "未读取到商品结果，可能是页面未加载或触发了平台验证"
     );
   }
