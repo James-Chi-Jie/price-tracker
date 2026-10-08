@@ -43,15 +43,26 @@ function parseSearchItem(item) {
   // card, but it does expose data-sku. Build the detail URL from that value.
   const url = id ? `https://item.jd.com/${id}.html` : linkedUrl;
   const titleNode = item.querySelector(
-    "[class*='_card_'], [class*='_info_'], .p-name em, .p-name, .p-img"
+    ".p-name em, .p-name, [class*='_title_'], [class*='_name_'], [class*='_card_'], [class*='_info_'], .p-img"
   );
-  let title = (titleNode?.textContent || "").replace(/\s+/g, " ").trim();
+  const titleCandidates = [
+    titleNode?.textContent,
+    ...[...item.querySelectorAll(
+      ".p-name em, .p-name, [class*='_title_'], [class*='_name_'], [class*='_card_'], [class*='_info_']"
+    )].map((node) => node.textContent),
+    item.textContent
+  ].map((value) => String(value || "").replace(/\s+/g, " ").trim()).filter(Boolean);
+  let title = titleCandidates[0] || "";
   // New cards often put the displayed price after the title in the same node.
   title = title.split(/[¥￥]/)[0].trim();
   const price = extractSearchPrice(item);
 
   if (!id || !url || !title || !Number.isFinite(price) || price <= 0) return null;
-  return { id, url, title, price, attributes: extractProductAttributes(title) };
+  const attributeText = titleCandidates
+    .filter((candidate) => /(袋|支|片|粒|贴|瓶|包|盒|箱|mg|毫克|g|克|ml|毫升|%)/i.test(candidate))
+    .slice(0, 8)
+    .join(" ");
+  return { id, url, title, price, attributes: extractProductAttributes(attributeText || title) };
 }
 
 function extractSearchPrice(item) {
