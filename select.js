@@ -24,7 +24,8 @@ async function init() {
     return;
   }
 
-  summaryEl.textContent = `产品名：${draft.keyword}　共 ${draft.products.length} 个结果`;
+  const pagesLabel = draft.pagesLoaded ? `（已合并前 ${draft.pagesLoaded} 页）` : "";
+  summaryEl.textContent = `产品名：${draft.keyword}　共 ${draft.products.length} 个结果${pagesLabel}`;
   renderOptions();
   updateOptionAvailability();
   renderThresholds();

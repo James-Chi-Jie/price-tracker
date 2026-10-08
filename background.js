@@ -88,7 +88,8 @@ async function startProductSelection(keyword) {
   const normalizedKeyword = String(keyword || "").trim();
   if (!normalizedKeyword) throw new Error("监控关键词不能为空");
 
-  const products = await searchProducts(normalizedKeyword);
+  const searchResult = await searchProducts(normalizedKeyword);
+  const products = searchResult.products;
   if (!products.length) {
     throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
   }
@@ -97,11 +98,12 @@ async function startProductSelection(keyword) {
     selectionDraft: {
       keyword: normalizedKeyword,
       products,
+      pagesLoaded: searchResult.pagesLoaded,
       createdAt: Date.now()
     }
   });
   await chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true });
-  return { count: products.length };
+  return { count: products.length, pagesLoaded: searchResult.pagesLoaded };
 }
 
 async function searchProducts(keyword) {
@@ -110,38 +112,48 @@ async function searchProducts(keyword) {
 
   const products = [];
   const seen = new Set();
-  for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
-    const pageProducts = await searchProductsPage(adapter, keyword, page);
-    for (const product of pageProducts) {
-      if (seen.has(String(product.id))) continue;
-      seen.add(String(product.id));
-      products.push(product);
-    }
-
-    if (!pageProducts.length || page < MAX_SEARCH_PAGES) {
-      await sleep(SEARCH_PAGE_DELAY_MS);
-    }
-    if (!pageProducts.length) break;
-  }
-  return products;
-}
-
-async function searchProductsPage(adapter, keyword, page) {
   const tab = await chrome.tabs.create({
-    url: adapter.buildSearchUrl(keyword, page),
+    url: adapter.buildSearchUrl(keyword, 1),
     active: false
   });
+  let pagesLoaded = 0;
   try {
-    await waitForTabComplete(tab.id);
-    await sleep(1500);
-    const response = await chrome.tabs.sendMessage(tab.id, {
-      type: "READ_SEARCH_RESULTS",
-      platform: adapter.id
-    });
-    if (!Array.isArray(response?.products)) {
-      throw new Error(response?.error || `未能读取京东第 ${page} 页搜索结果`);
+    for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
+      if (page > 1) {
+        await chrome.tabs.update(tab.id, {
+          url: adapter.buildSearchUrl(keyword, page),
+          active: false
+        });
+      }
+
+      await waitForTabComplete(tab.id);
+      await sleep(1500);
+      const response = await chrome.tabs.sendMessage(tab.id, {
+        type: "READ_SEARCH_RESULTS",
+        platform: adapter.id
+      });
+      if (!Array.isArray(response?.products)) {
+        throw new Error(response?.error || `未能读取京东第 ${page} 页搜索结果`);
+      }
+
+      const pageProducts = response.products;
+      pagesLoaded = page;
+      let newProducts = 0;
+      for (const product of pageProducts) {
+        if (seen.has(String(product.id))) continue;
+        seen.add(String(product.id));
+        products.push(product);
+        newProducts += 1;
+      }
+
+      // 京东偶尔会把分页请求重定向回第一页；继续请求其余页，但不要把重复结果误当成新商品。
+      if (page > 1 && pageProducts.length && newProducts === 0) {
+        console.warn(`京东第 ${page} 页返回了重复结果，可能触发了分页重定向或验证`);
+      }
+      if (!pageProducts.length) break;
+      if (page < MAX_SEARCH_PAGES) await sleep(SEARCH_PAGE_DELAY_MS);
     }
-    return response.products;
+    return { products, pagesLoaded };
   } finally {
     await chrome.tabs.remove(tab.id).catch(() => {});
   }
@@ -205,7 +217,7 @@ async function checkMonitor(id) {
   if (!adapter) throw new Error("暂不支持该平台");
   if (!monitor.keyword?.trim()) throw new Error("监控关键词不能为空");
 
-  const responseProducts = await searchProducts(monitor.keyword.trim());
+  const responseProducts = (await searchProducts(monitor.keyword.trim())).products;
   if (!responseProducts.length) {
     throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
   }
