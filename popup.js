@@ -23,6 +23,10 @@ form.addEventListener("submit", async (event) => {
     if (result?.ok) {
       form.reset();
       showMessage("已打开商品选择页");
+      await chrome.tabs.create({
+        url: result.selectionUrl || chrome.runtime.getURL("select.html"),
+        active: true
+      });
     } else {
       showMessage(`搜索失败：${result?.error || "未知错误"}`);
     }
