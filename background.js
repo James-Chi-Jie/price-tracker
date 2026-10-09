@@ -1,1 +1,576 @@
-aW1wb3J0U2NyaXB0cygicGxhdGZvcm1zL2pkLmpzIik7Cgpjb25zdCBBTEFSTV9OQU1FID0gImpkLXByaWNlLW1vbml0b3IiOwpjb25zdCBERUZBVUxUX0lOVEVSVkFMX01JTlVURVMgPSAzMDsKY29uc3QgVEFCX1RJTUVPVVRfTVMgPSAyNTAwMDsKY29uc3QgTUFYX1NFQVJDSF9QQUdFUyA9IDM7CmNvbnN0IFNFQVJDSF9QQUdFX0RFTEFZX01TID0gNzAwOwpjb25zdCBUQUJfTUVTU0FHRV9USU1FT1VUX01TID0gMjAwMDA7CgpjaHJvbWUucnVudGltZS5vbkluc3RhbGxlZC5hZGRMaXN0ZW5lcigoKSA9PiBlbnN1cmVBbGFybSgpKTsKY2hyb21lLnJ1bnRpbWUub25TdGFydHVwLmFkZExpc3RlbmVyKCgpID0+IGVuc3VyZUFsYXJtKCkpOwplbnN1cmVBbGFybSgpOwoKY2hyb21lLmFsYXJtcy5vbkFsYXJtLmFkZExpc3RlbmVyKGFzeW5jIChhbGFybSkgPT4gewogIGlmIChhbGFybS5uYW1lICE9PSBBTEFSTV9OQU1FKSByZXR1cm47CiAgYXdhaXQgY2hlY2tBbGxNb25pdG9ycygpOwp9KTsKCmNocm9tZS5ub3RpZmljYXRpb25zLm9uQ2xpY2tlZC5hZGRMaXN0ZW5lcihhc3luYyAobm90aWZpY2F0aW9uSWQpID0+IHsKICBjb25zdCB7IG5vdGlmaWNhdGlvblRhcmdldHMgfSA9IGF3YWl0IGNocm9tZS5zdG9yYWdlLmxvY2FsLmdldCh7IG5vdGlmaWNhdGlvblRhcmdldHM6IHt9IH0pOwogIGNvbnN0IHVybCA9IG5vdGlmaWNhdGlvblRhcmdldHNbbm90aWZpY2F0aW9uSWRdOwogIGlmICghdXJsKSByZXR1cm47CiAgYXdhaXQgY2hyb21lLnRhYnMuY3JlYXRlKHsgdXJsLCBhY3RpdmU6IHRydWUgfSk7CiAgZGVsZXRlIG5vdGlmaWNhdGlvblRhcmdldHNbbm90aWZpY2F0aW9uSWRdOwogIGF3YWl0IGNocm9tZS5zdG9yYWdlLmxvY2FsLnNldCh7IG5vdGlmaWNhdGlvblRhcmdldHMgfSk7Cn0pOwoKY2hyb21lLnJ1bnRpbWUub25NZXNzYWdlLmFkZExpc3RlbmVyKChtZXNzYWdlLCBfc2VuZGVyLCBzZW5kUmVzcG9uc2UpID0+IHsKICBpZiAobWVzc2FnZT8udHlwZSA9PT0gIlNUQVJUX1BST0RVQ1RfU0VMRUNUSU9OIikgewogICAgc3RhcnRQcm9kdWN0U2VsZWN0aW9uKG1lc3NhZ2Uua2V5d29yZCkKICAgICAgLnRoZW4oKHJlc3VsdCkgPT4gc2VuZFJlc3BvbnNlKHsgb2s6IHRydWUsIHJlc3VsdCB9KSkKICAgICAgLmNhdGNoKChlcnJvcikgPT4gc2VuZFJlc3BvbnNlKHsgb2s6IGZhbHNlLCBlcnJvcjogZXJyb3IubWVzc2FnZSB9KSk7CiAgICByZXR1cm4gdHJ1ZTsKICB9CgogIGlmIChtZXNzYWdlPy50eXBlID09PSAiQ1JFQVRFX01PTklUT1IiKSB7CiAgICBjcmVhdGVNb25pdG9yRnJvbVNlbGVjdGlvbigKICAgICAgbWVzc2FnZS5wcm9kdWN0SWRzLAogICAgICBtZXNzYWdlLmluY2x1ZGVLZXl3b3JkcywKICAgICAgbWVzc2FnZS5leGNsdWRlS2V5d29yZHMsCiAgICAgIG1lc3NhZ2UudmFyaWFudFJ1bGUsCiAgICAgIG1lc3NhZ2UudGhyZXNob2xkUnVsZXMKICAgICkKICAgICAgLnRoZW4oKHJlc3VsdCkgPT4gc2VuZFJlc3BvbnNlKHsgb2s6IHRydWUsIHJlc3VsdCB9KSkKICAgICAgLmNhdGNoKChlcnJvcikgPT4gc2VuZFJlc3BvbnNlKHsgb2s6IGZhbHNlLCBlcnJvcjogZXJyb3IubWVzc2FnZSB9KSk7CiAgICByZXR1cm4gdHJ1ZTsKICB9CgogIGlmIChtZXNzYWdlPy50eXBlID09PSAiQ0hFQ0tfT05FIikgewogICAgY2hlY2tNb25pdG9yKG1lc3NhZ2UuaWQpCiAgICAgIC50aGVuKChyZXN1bHQpID0+IHNlbmRSZXNwb25zZSh7IG9rOiB0cnVlLCByZXN1bHQgfSkpCiAgICAgIC5jYXRjaCgoZXJyb3IpID0+IHNlbmRSZXNwb25zZSh7IG9rOiBmYWxzZSwgZXJyb3I6IGVycm9yLm1lc3NhZ2UgfSkpOwogICAgcmV0dXJuIHRydWU7CiAgfQoKICBpZiAobWVzc2FnZT8udHlwZSA9PT0gIkdFVF9TVEFUVVMiKSB7CiAgICBjaHJvbWUuc3RvcmFnZS5sb2NhbC5nZXQoeyBtb25pdG9yczogW10gfSkudGhlbigoeyBtb25pdG9ycyB9KSA9PiB7CiAgICAgIHNlbmRSZXNwb25zZSh7IG9rOiB0cnVlLCBtb25pdG9ycyB9KTsKICAgIH0pOwogICAgcmV0dXJuIHRydWU7CiAgfQp9KTsKCmFzeW5jIGZ1bmN0aW9uIGVuc3VyZUFsYXJtKCkgewogIGNvbnN0IGV4aXN0aW5nID0gYXdhaXQgY2hyb21lLmFsYXJtcy5nZXQoQUxBUk1fTkFNRSk7CiAgaWYgKCFleGlzdGluZykgewogICAgYXdhaXQgY2hyb21lLmFsYXJtcy5jcmVhdGUoQUxBUk1fTkFNRSwgewogICAgICBkZWxheUluTWludXRlczogREVGQVVMVF9JTlRFUlZBTF9NSU5VVEVTLAogICAgICBwZXJpb2RJbk1pbnV0ZXM6IERFRkFVTFRfSU5URVJWQUxfTUlOVVRFUwogICAgfSk7CiAgfQp9Cgphc3luYyBmdW5jdGlvbiBjaGVja0FsbE1vbml0b3JzKCkgewogIGNvbnN0IHsgbW9uaXRvcnMgfSA9IGF3YWl0IGNocm9tZS5zdG9yYWdlLmxvY2FsLmdldCh7IG1vbml0b3JzOiBbXSB9KTsKICBmb3IgKGNvbnN0IG1vbml0b3Igb2YgbW9uaXRvcnMpIHsKICAgIHRyeSB7CiAgICAgIGF3YWl0IGNoZWNrTW9uaXRvcihtb25pdG9yLmlkKTsKICAgIH0gY2F0Y2ggKGVycm9yKSB7CiAgICAgIGF3YWl0IHVwZGF0ZU1vbml0b3IobW9uaXRvci5pZCwgewogICAgICAgIGxhc3RDaGVja2VkQXQ6IERhdGUubm93KCksCiAgICAgICAgbGFzdEVycm9yOiBlcnJvci5tZXNzYWdlCiAgICAgIH0pOwogICAgfQogIH0KfQoKYXN5bmMgZnVuY3Rpb24gc3RhcnRQcm9kdWN0U2VsZWN0aW9uKGtleXdvcmQpIHsKICBjb25zdCBub3JtYWxpemVkS2V5d29yZCA9IFN0cmluZyhrZXl3b3JkIHx8ICIiKS50cmltKCk7CiAgaWYgKCFub3JtYWxpemVkS2V5d29yZCkgdGhyb3cgbmV3IEVycm9yKCLnm5HmjqflhbPplK7or43kuI3og73kuLrnqboiKTsKCiAgYXdhaXQgc2V0U2VhcmNoU3RhdHVzKHsKICAgIHN0YXRlOiAic2VhcmNoaW5nIiwKICAgIGtleXdvcmQ6IG5vcm1hbGl6ZWRLZXl3b3JkLAogICAgcGFnZTogMCwKICAgIHRvdGFsUGFnZXM6IE1BWF9TRUFSQ0hfUEFHRVMsCiAgICBwYWdlU3RhdHM6IFtdCiAgfSk7CiAgdHJ5IHsKICAgIGNvbnN0IHNlYXJjaFJlc3VsdCA9IGF3YWl0IHNlYXJjaFByb2R1Y3RzKG5vcm1hbGl6ZWRLZXl3b3JkKTsKICAgIGNvbnN0IHByb2R1Y3RzID0gc2VhcmNoUmVzdWx0LnByb2R1Y3RzOwogICAgaWYgKCFwcm9kdWN0cy5sZW5ndGgpIHsKICAgICAgdGhyb3cgbmV3IEVycm9yKCLmnKror7vlj5bliLDllYblk4Hnu5PmnpzvvIzlj6/og73mmK/pobXpnaLmnKrliqDovb3miJbop6blj5HkuoblubPlj7Dpqozor4EiKTsKICAgIH0KCiAgICBhd2FpdCBjaHJvbWUuc3RvcmFnZS5sb2NhbC5zZXQoewogICAgICBzZWxlY3Rpb25EcmFmdDogewogICAgICAgIGtleXdvcmQ6IG5vcm1hbGl6ZWRLZXl3b3JkLAogICAgICAgIHByb2R1Y3RzLAogICAgICAgIHBhZ2VzTG9hZGVkOiBzZWFyY2hSZXN1bHQucGFnZXNMb2FkZWQsCiAgICAgICAgcGFnZVN0YXRzOiBzZWFyY2hSZXN1bHQucGFnZVN0YXRzLAogICAgICAgIGNyZWF0ZWRBdDogRGF0ZS5ub3coKQogICAgICB9CiAgICB9KTsKICAgIGF3YWl0IGNocm9tZS50YWJzLmNyZWF0ZSh7IHVybDogY2hyb21lLnJ1bnRpbWUuZ2V0VVJMKCJzZWxlY3QuaHRtbCIpLCBhY3RpdmU6IHRydWUgfSk7CiAgICBhd2FpdCBzZXRTZWFyY2hTdGF0dXMoewogICAgICBzdGF0ZTogImRvbmUiLAogICAgICBrZXl3b3JkOiBub3JtYWxpemVkS2V5d29yZCwKICAgICAgcGFnZTogc2VhcmNoUmVzdWx0LnBhZ2VzTG9hZGVkLAogICAgICB0b3RhbFBhZ2VzOiBNQVhfU0VBUkNIX1BBR0VTLAogICAgICBjb3VudDogcHJvZHVjdHMubGVuZ3RoLAogICAgICBwYWdlU3RhdHM6IHNlYXJjaFJlc3VsdC5wYWdlU3RhdHMKICAgIH0pOwogICAgcmV0dXJuIHsKICAgICAgY291bnQ6IHByb2R1Y3RzLmxlbmd0aCwKICAgICAgcGFnZXNMb2FkZWQ6IHNlYXJjaFJlc3VsdC5wYWdlc0xvYWRlZCwKICAgICAgcGFnZVN0YXRzOiBzZWFyY2hSZXN1bHQucGFnZVN0YXRzCiAgICB9OwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICBhd2FpdCBzZXRTZWFyY2hTdGF0dXMoewogICAgICBzdGF0ZTogImVycm9yIiwKICAgICAga2V5d29yZDogbm9ybWFsaXplZEtleXdvcmQsCiAgICAgIGVycm9yOiBlcnJvci5tZXNzYWdlCiAgICB9KTsKICAgIHRocm93IGVycm9yOwogIH0KfQoKYXN5bmMgZnVuY3Rpb24gc2VhcmNoUHJvZHVjdHMoa2V5d29yZCkgewogIGNvbnN0IGFkYXB0ZXIgPSBzZWxmLlByaWNlQWRhcHRlcnM/LmpkOwogIGlmICghYWRhcHRlcikgdGhyb3cgbmV3IEVycm9yKCLmmoLkuI3mlK/mjIHkuqzkuJwiKTsKCiAgY29uc3QgcHJvZHVjdHMgPSBbXTsKICBjb25zdCBzZWVuID0gbmV3IFNldCgpOwogIGNvbnN0IHBhZ2VTdGF0cyA9IFtdOwogIGNvbnN0IHNlYXJjaFdpbmRvdyA9IGF3YWl0IGNocm9tZS53aW5kb3dzLmNyZWF0ZSh7CiAgICB1cmw6IGFkYXB0ZXIuYnVpbGRTZWFyY2hVcmwoa2V5d29yZCwgMSksCiAgICBmb2N1c2VkOiBmYWxzZSwKICAgIHN0YXRlOiAibWluaW1pemVkIiwKICAgIHR5cGU6ICJwb3B1cCIKICB9KTsKICBjb25zdCB0YWJJZCA9IHNlYXJjaFdpbmRvdy50YWJzPy5bMF0/LmlkOwogIGlmICghdGFiSWQpIHRocm93IG5ldyBFcnJvcigi5peg5rOV5Yib5bu65ZCO5Y+w5pCc57Si56qX5Y+jIik7CiAgbGV0IHBhZ2VzTG9hZGVkID0gMDsKICB0cnkgewogICAgZm9yIChsZXQgcGFnZSA9IDE7IHBhZ2UgPD0gTUFYX1NFQVJDSF9QQUdFUzsgcGFnZSArPSAxKSB7CiAgICAgIGF3YWl0IHNldFNlYXJjaFN0YXR1cyh7CiAgICAgICAgc3RhdGU6ICJzZWFyY2hpbmciLAogICAgICAgIGtleXdvcmQsCiAgICAgICAgcGFnZSwKICAgICAgICB0b3RhbFBhZ2VzOiBNQVhfU0VBUkNIX1BBR0VTLAogICAgICAgIHBhZ2VzTG9hZGVkLAogICAgICAgIHBhZ2VTdGF0cwogICAgICB9KTsKICAgICAgaWYgKHBhZ2UgPiAxKSB7CiAgICAgICAgY29uc3QgcGFnZVJlc3BvbnNlID0gYXdhaXQgc2VuZFRhYk1lc3NhZ2UodGFiSWQsIHsKICAgICAgICAgIHR5cGU6ICJHT19UT19TRUFSQ0hfUEFHRSIsCiAgICAgICAgICBwYWdlCiAgICAgICAgfSk7CiAgICAgICAgaWYgKCFwYWdlUmVzcG9uc2U/Lm9rKSB7CiAgICAgICAgICB0aHJvdyBuZXcgRXJyb3IocGFnZVJlc3BvbnNlPy5lcnJvciB8fCBg5pyq6IO95YiH5o2i5Yiw5Lqs5Lic56ysICR7cGFnZX0g6aG1YCk7CiAgICAgICAgfQogICAgICB9IGVsc2UgewogICAgICAgIGF3YWl0IHdhaXRGb3JUYWJDb21wbGV0ZSh0YWJJZCk7CiAgICAgIH0KCiAgICAgIGNvbnN0IHJlc3BvbnNlID0gYXdhaXQgc2VuZFRhYk1lc3NhZ2UodGFiSWQsIHsKICAgICAgICB0eXBlOiAiUkVBRF9TRUFSQ0hfUkVTVUxUUyIsCiAgICAgICAgcGxhdGZvcm06IGFkYXB0ZXIuaWQsCiAgICAgICAgZXhwZWN0ZWRQYWdlOiBwYWdlCiAgICAgIH0pOwogICAgICBpZiAoIUFycmF5LmlzQXJyYXkocmVzcG9uc2U/LnByb2R1Y3RzKSkgewogICAgICAgIHRocm93IG5ldyBFcnJvcihyZXNwb25zZT8uZXJyb3IgfHwgYOacquiDveivu+WPluS6rOS4nOesrCAke3BhZ2V9IOmhteaQnOe0oue7k+aenGApOwogICAgICB9CgogICAgICBjb25zdCBwYWdlUHJvZHVjdHMgPSByZXNwb25zZS5wcm9kdWN0czsKICAgICAgcGFnZXNMb2FkZWQgPSBwYWdlOwogICAgICBsZXQgbmV3UHJvZHVjdHMgPSAwOwogICAgICBmb3IgKGNvbnN0IHByb2R1Y3Qgb2YgcGFnZVByb2R1Y3RzKSB7CiAgICAgICAgaWYgKHNlZW4uaGFzKFN0cmluZyhwcm9kdWN0LmlkKSkpIGNvbnRpbnVlOwogICAgICAgIHNlZW4uYWRkKFN0cmluZyhwcm9kdWN0LmlkKSk7CiAgICAgICAgcHJvZHVjdHMucHVzaChwcm9kdWN0KTsKICAgICAgICBuZXdQcm9kdWN0cyArPSAxOwogICAgICB9CgogICAgICAvLyDkuqzkuJzlgbblsJTkvJrmiorliIbpobXor7fmsYLph43lrprlkJHlm57nrKzkuIDpobXvvJvnu6fnu63or7fmsYLlhbbkvZnpobXvvIzkvYbkuI3opoHmiorph43lpI3nu5Pmnpzor6/lvZPmiJDmlrDllYblk4HjgIIKICAgICAgaWYgKHBhZ2UgPiAxICYmIHBhZ2VQcm9kdWN0cy5sZW5ndGggJiYgbmV3UHJvZHVjdHMgPT09IDApIHsKICAgICAgICBjb25zb2xlLndhcm4oYOS6rOS4nOesrCAke3BhZ2V9IOmhtei/lOWbnuS6humHjeWkjee7k+aenO+8jOWPr+iDveinpuWPkeS6huWIhumhtemHjeWumuWQkeaIlumqjOivgWApOwogICAgICB9CiAgICAgIHBhZ2VTdGF0cy5wdXNoKHsgcGFnZSwgcmVjZWl2ZWQ6IHBhZ2VQcm9kdWN0cy5sZW5ndGgsIG5ld1Byb2R1Y3RzIH0pOwogICAgICBhd2FpdCBzZXRTZWFyY2hTdGF0dXMoewogICAgICAgIHN0YXRlOiAic2VhcmNoaW5nIiwKICAgICAgICBrZXl3b3JkLAogICAgICAgIHBhZ2UsCiAgICAgICAgdG90YWxQYWdlczogTUFYX1NFQVJDSF9QQUdFUywKICAgICAgICBwYWdlc0xvYWRlZCwKICAgICAgICBwYWdlU3RhdHMKICAgICAgfSk7CiAgICAgIGlmICghcGFnZVByb2R1Y3RzLmxlbmd0aCkgYnJlYWs7CiAgICAgIGlmIChwYWdlIDwgTUFYX1NFQVJDSF9QQUdFUykgYXdhaXQgc2xlZXAoU0VBUkNIX1BBR0VfREVMQVlfTVMpOwogICAgfQogICAgcmV0dXJuIHsgcHJvZHVjdHMsIHBhZ2VzTG9hZGVkLCBwYWdlU3RhdHMgfTsKICB9IGZpbmFsbHkgewogICAgYXdhaXQgY2hyb21lLndpbmRvd3MucmVtb3ZlKHNlYXJjaFdpbmRvdy5pZCkuY2F0Y2goKCkgPT4ge30pOwogIH0KfQoKZnVuY3Rpb24gc2VuZFRhYk1lc3NhZ2UodGFiSWQsIG1lc3NhZ2UpIHsKICByZXR1cm4gUHJvbWlzZS5yYWNlKFsKICAgIGNocm9tZS50YWJzLnNlbmRNZXNzYWdlKHRhYklkLCBtZXNzYWdlKSwKICAgIG5ldyBQcm9taXNlKChfLCByZWplY3QpID0+IHsKICAgICAgc2V0VGltZW91dCgoKSA9PiByZWplY3QobmV3IEVycm9yKCLkuqzkuJzpobXpnaLlk43lupTotoXml7bvvIzor7fliLfmlrDmianlsZXlkI7ph43or5UiKSksIFRBQl9NRVNTQUdFX1RJTUVPVVRfTVMpOwogICAgfSkKICBdKTsKfQoKYXN5bmMgZnVuY3Rpb24gc2V0U2VhcmNoU3RhdHVzKHN0YXR1cykgewogIGF3YWl0IGNocm9tZS5zdG9yYWdlLmxvY2FsLnNldCh7IHNlYXJjaFN0YXR1czogeyAuLi5zdGF0dXMsIHVwZGF0ZWRBdDogRGF0ZS5ub3coKSB9IH0pOwp9Cgphc3luYyBmdW5jdGlvbiBjcmVhdGVNb25pdG9yRnJvbVNlbGVjdGlvbigKICBwcm9kdWN0SWRzLAogIGluY2x1ZGVLZXl3b3JkcywKICBleGNsdWRlS2V5d29yZHMsCiAgdmFyaWFudFJ1bGUsCiAgdGhyZXNob2xkUnVsZXMKKSB7CiAgY29uc3QgeyBzZWxlY3Rpb25EcmFmdCB9ID0gYXdhaXQgY2hyb21lLnN0b3JhZ2UubG9jYWwuZ2V0KHsgc2VsZWN0aW9uRHJhZnQ6IG51bGwgfSk7CiAgaWYgKCFzZWxlY3Rpb25EcmFmdD8ucHJvZHVjdHM/Lmxlbmd0aCkgdGhyb3cgbmV3IEVycm9yKCLllYblk4HpgInmi6nlt7Lov4fmnJ/vvIzor7fph43mlrDmkJzntKIiKTsKICBjb25zdCBub3JtYWxpemVkVGhyZXNob2xkUnVsZXMgPSBub3JtYWxpemVUaHJlc2hvbGRSdWxlcyh0aHJlc2hvbGRSdWxlcyk7CgogIGNvbnN0IGlkcyA9IG5ldyBTZXQoKEFycmF5LmlzQXJyYXkocHJvZHVjdElkcykgPyBwcm9kdWN0SWRzIDogW10pLm1hcChTdHJpbmcpKTsKICBjb25zdCBzZWxlY3RlZFByb2R1Y3RzID0gc2VsZWN0aW9uRHJhZnQucHJvZHVjdHMuZmlsdGVyKChwcm9kdWN0KSA9PiBpZHMuaGFzKFN0cmluZyhwcm9kdWN0LmlkKSkpOwogIGNvbnN0IG1hdGNoUnVsZSA9IHsKICAgIGluY2x1ZGVLZXl3b3Jkczogbm9ybWFsaXplS2V5d29yZHMoaW5jbHVkZUtleXdvcmRzKSwKICAgIGV4Y2x1ZGVLZXl3b3Jkczogbm9ybWFsaXplS2V5d29yZHMoZXhjbHVkZUtleXdvcmRzKSwKICAgIC4uLm5vcm1hbGl6ZVZhcmlhbnRSdWxlKHZhcmlhbnRSdWxlKQogIH07CiAgaWYgKCFtYXRjaFJ1bGUuaW5jbHVkZUtleXdvcmRzLmxlbmd0aCkgdGhyb3cgbmV3IEVycm9yKCLor7foh7PlsJHloavlhpnkuIDkuKrlv4XlkKvlhbPplK7or40iKTsKCiAgY29uc3QgbW9uaXRvciA9IHsKICAgIGlkOiBjcnlwdG8ucmFuZG9tVVVJRCgpLAogICAgcGxhdGZvcm06ICJqZCIsCiAgICBrZXl3b3JkOiBzZWxlY3Rpb25EcmFmdC5rZXl3b3JkLAogICAgdGhyZXNob2xkOiBub3JtYWxpemVkVGhyZXNob2xkUnVsZXMuZGVmYXVsdCwKICAgIHRocmVzaG9sZFJ1bGVzOiBub3JtYWxpemVkVGhyZXNob2xkUnVsZXMsCiAgICBtYXRjaFJ1bGUsCiAgICBleGFtcGxlUHJvZHVjdHM6IHNlbGVjdGVkUHJvZHVjdHMsCiAgICBtYXRjaGVzOiB7fSwKICAgIGxvd2VzdFByaWNlOiBudWxsLAogICAgZWxpZ2libGVDb3VudDogMCwKICAgIGxhc3RDaGVja2VkQXQ6IG51bGwsCiAgICBsYXN0RXJyb3I6ICIiCiAgfTsKICBjb25zdCB7IG1vbml0b3JzIH0gPSBhd2FpdCBjaHJvbWUuc3RvcmFnZS5sb2NhbC5nZXQoeyBtb25pdG9yczogW10gfSk7CiAgbW9uaXRvcnMucHVzaChtb25pdG9yKTsKICBhd2FpdCBjaHJvbWUuc3RvcmFnZS5sb2NhbC5zZXQoeyBtb25pdG9ycywgc2VsZWN0aW9uRHJhZnQ6IG51bGwgfSk7CiAgdHJ5IHsKICAgIGNvbnN0IHJlc3VsdCA9IGF3YWl0IGNoZWNrTW9uaXRvcihtb25pdG9yLmlkKTsKICAgIHJldHVybiB7IG1vbml0b3I6IHJlc3VsdCB9OwogIH0gY2F0Y2ggKGVycm9yKSB7CiAgICBhd2FpdCB1cGRhdGVNb25pdG9yKG1vbml0b3IuaWQsIHsKICAgICAgbGFzdENoZWNrZWRBdDogRGF0ZS5ub3coKSwKICAgICAgbGFzdEVycm9yOiBlcnJvci5tZXNzYWdlCiAgICB9KTsKICAgIHJldHVybiB7IG1vbml0b3I6IHsgLi4ubW9uaXRvciwgbGFzdENoZWNrZWRBdDogRGF0ZS5ub3coKSwgbGFzdEVycm9yOiBlcnJvci5tZXNzYWdlIH0gfTsKICB9Cn0KCmFzeW5jIGZ1bmN0aW9uIGNoZWNrTW9uaXRvcihpZCkgewogIGNvbnN0IHsgbW9uaXRvcnMgfSA9IGF3YWl0IGNocm9tZS5zdG9yYWdlLmxvY2FsLmdldCh7IG1vbml0b3JzOiBbXSB9KTsKICBjb25zdCBtb25pdG9yID0gbW9uaXRvcnMuZmluZCgoaXRlbSkgPT4gaXRlbS5pZCA9PT0gaWQpOwogIGlmICghbW9uaXRvcikgdGhyb3cgbmV3IEVycm9yKCLnm5Hmjqfku7vliqHkuI3lrZjlnKgiKTsKCiAgY29uc3QgYWRhcHRlciA9IHNlbGYuUHJpY2VBZGFwdGVycz8uW21vbml0b3IucGxhdGZvcm0gfHwgImpkIl07CiAgaWYgKCFhZGFwdGVyKSB0aHJvdyBuZXcgRXJyb3IoIuaaguS4jeaUr+aMgeivpeW5s+WPsCIpOwogIGlmICghbW9uaXRvci5rZXl3b3JkPy50cmltKCkpIHRocm93IG5ldyBFcnJvcigi55uR5o6n5YWz6ZSu6K+N5LiN6IO95Li656m6Iik7CgogIGNvbnN0IHJlc3BvbnNlUHJvZHVjdHMgPSAoYXdhaXQgc2VhcmNoUHJvZHVjdHMobW9uaXRvci5rZXl3b3JkLnRyaW0oKSkpLnByb2R1Y3RzOwogIGlmICghcmVzcG9uc2VQcm9kdWN0cy5sZW5ndGgpIHsKICAgIHRocm93IG5ldyBFcnJvcigi5pyq6K+75Y+W5Yiw5ZWG5ZOB57uT5p6c77yM5Y+v6IO95piv6aG16Z2i5pyq5Yqg6L295oiW6Kem5Y+R5LqG5bmz5Y+w6aqM6K+BIik7CiAgfQoKICBjb25zdCBzZWxlY3RlZFByb2R1Y3RzID0gQXJyYXkuaXNBcnJheShtb25pdG9yLnNlbGVjdGVkUHJvZHVjdHMpCiAgICA/IG1vbml0b3Iuc2VsZWN0ZWRQcm9kdWN0cwogICAgOiBbXTsKICBjb25zdCBtYXRjaFJ1bGUgPSBub3JtYWxpemVNYXRjaFJ1bGUobW9uaXRvci5tYXRjaFJ1bGUpOwogIGNvbnN0IHNlbGVjdGVkSWRzID0gbmV3IFNldChzZWxlY3RlZFByb2R1Y3RzLm1hcCgocHJvZHVjdCkgPT4gU3RyaW5nKHByb2R1Y3QuaWQpKSk7CiAgY29uc3QgbWF0Y2hlZFByb2R1Y3RzID0gbWF0Y2hSdWxlCiAgICA/IHJlc3BvbnNlUHJvZHVjdHMuZmlsdGVyKChwcm9kdWN0KSA9PiBtYXRjaGVzUnVsZShwcm9kdWN0LCBtYXRjaFJ1bGUpKQogICAgOiBzZWxlY3RlZFByb2R1Y3RzLmxlbmd0aAogICAgICA/IHJlc3BvbnNlUHJvZHVjdHMuZmlsdGVyKChwcm9kdWN0KSA9PiBzZWxlY3RlZElkcy5oYXMoU3RyaW5nKHByb2R1Y3QuaWQpKSkKICAgICAgOiByZXNwb25zZVByb2R1Y3RzOwoKICBpZiAoIW1hdGNoZWRQcm9kdWN0cy5sZW5ndGgpIHsKICAgIHRocm93IG5ldyBFcnJvcigKICAgICAgbWF0Y2hSdWxlCiAgICAgICAgPyAi5b2T5YmN5pCc57Si57uT5p6c5YmNIDMg6aG15rKh5pyJ56ym5ZCI5Yy56YWN6KeE5YiZ55qE5ZWG5ZOBIgogICAgICAgIDogc2VsZWN0ZWRQcm9kdWN0cy5sZW5ndGgKICAgICAgICA/ICLpgInkuK3nmoTllYblk4HkuI3lnKjlvZPliY3mkJzntKLnu5PmnpzliY0gMyDpobXvvIzmmoLml7bml6Dms5Xnoa7orqTku7fmoLwiCiAgICAgICAgOiAi5pyq6K+75Y+W5Yiw5ZWG5ZOB57uT5p6c77yM5Y+v6IO95piv6aG16Z2i5pyq5Yqg6L295oiW6Kem5Y+R5LqG5bmz5Y+w6aqM6K+BIgogICAgKTsKICB9CgogIGNvbnN0IHByb2R1Y3RzID0gbWF0Y2hlZFByb2R1Y3RzCiAgICAubWFwKChwcm9kdWN0KSA9PiAoewogICAgICAuLi5wcm9kdWN0LAogICAgICBjb21wYXJpc29uUHJpY2U6IGdldENvbXBhcmFibGVQcmljZShwcm9kdWN0LCBtYXRjaFJ1bGUpLAogICAgICB0aHJlc2hvbGQ6IGdldFRocmVzaG9sZEZvclByb2R1Y3QocHJvZHVjdCwgbW9uaXRvcikKICAgIH0pKQogICAgLmZpbHRlcigocHJvZHVjdCkgPT4gTnVtYmVyLmlzRmluaXRlKHByb2R1Y3QuY29tcGFyaXNvblByaWNlKSAmJiBOdW1iZXIuaXNGaW5pdGUocHJvZHVjdC50aHJlc2hvbGQpKTsKICBpZiAoIXByb2R1Y3RzLmxlbmd0aCkgewogICAgdGhyb3cgbmV3IEVycm9yKCLmib7liLDnrKblkIjmnaHku7bnmoTllYblk4HvvIzkvYbml6Dms5Xop6PmnpDlhbboo4Xph4/vvIzmmoLml7bml6Dms5XorqHnrpfmr5TovoPku7fmoLwiKTsKICB9CgogIGNvbnN0IHByZXZpb3VzTWF0Y2hlcyA9IG1vbml0b3IubWF0Y2hlcyB8fCB7fTsKICBjb25zdCBuZXh0TWF0Y2hlcyA9IHsgLi4ucHJldmlvdXNNYXRjaGVzIH07CiAgY29uc3QgbmV3bHlNYXRjaGVkID0gW107CgogIGZvciAoY29uc3QgcHJvZHVjdCBvZiBwcm9kdWN0cykgewogICAgY29uc3QgaXNCZWxvdyA9IHByb2R1Y3QuY29tcGFyaXNvblByaWNlIDwgcHJvZHVjdC50aHJlc2hvbGQ7CiAgICBjb25zdCBwcmV2aW91cyA9IHByZXZpb3VzTWF0Y2hlc1twcm9kdWN0LmlkXSB8fCB7fTsKICAgIG5leHRNYXRjaGVzW3Byb2R1Y3QuaWRdID0gewogICAgICB0aXRsZTogcHJvZHVjdC50aXRsZSwKICAgICAgcHJpY2U6IHByb2R1Y3QucHJpY2UsCiAgICAgIGNvbXBhcmlzb25QcmljZTogcHJvZHVjdC5jb21wYXJpc29uUHJpY2UsCiAgICAgIHRocmVzaG9sZDogcHJvZHVjdC50aHJlc2hvbGQsCiAgICAgIGF0dHJpYnV0ZXM6IHByb2R1Y3QuYXR0cmlidXRlcywKICAgICAgdXJsOiBwcm9kdWN0LnVybCwKICAgICAgd2FzQmVsb3dUaHJlc2hvbGQ6IGlzQmVsb3csCiAgICAgIGxhc3RTZWVuQXQ6IERhdGUubm93KCkKICAgIH07CiAgICBpZiAoaXNCZWxvdyAmJiBwcmV2aW91cy53YXNCZWxvd1RocmVzaG9sZCAhPT0gdHJ1ZSkgewogICAgICBuZXdseU1hdGNoZWQucHVzaChwcm9kdWN0KTsKICAgIH0KICB9CgogIGNvbnN0IGVsaWdpYmxlUHJvZHVjdHMgPSBwcm9kdWN0cwogICAgLmZpbHRlcigocHJvZHVjdCkgPT4gcHJvZHVjdC5jb21wYXJpc29uUHJpY2UgPCBwcm9kdWN0LnRocmVzaG9sZCkKICAgIC5zb3J0KChsZWZ0LCByaWdodCkgPT4gbGVmdC5jb21wYXJpc29uUHJpY2UgLSByaWdodC5jb21wYXJpc29uUHJpY2UpOwogIGNvbnN0IGxhdGVzdFByb2R1Y3RzID0gcHJvZHVjdHMubWFwKChwcm9kdWN0KSA9PiAoewogICAgaWQ6IHByb2R1Y3QuaWQsCiAgICB1cmw6IHByb2R1Y3QudXJsLAogICAgdGl0bGU6IHByb2R1Y3QudGl0bGUsCiAgICBwcmljZTogcHJvZHVjdC5wcmljZSwKICAgIGNvbXBhcmlzb25QcmljZTogcHJvZHVjdC5jb21wYXJpc29uUHJpY2UsCiAgICB0aHJlc2hvbGQ6IHByb2R1Y3QudGhyZXNob2xkLAogICAgYXR0cmlidXRlczogcHJvZHVjdC5hdHRyaWJ1dGVzCiAgfSkpOwogIGNvbnN0IHBhdGNoID0gewogICAgbGFzdENoZWNrZWRBdDogRGF0ZS5ub3coKSwKICAgIGxhc3RFcnJvcjogIiIsCiAgICBtYXRjaGVzOiBuZXh0TWF0Y2hlcywKICAgIGxhdGVzdFByb2R1Y3RzLAogICAgbG93ZXN0UHJpY2U6IHByb2R1Y3RzLnJlZHVjZSgKICAgICAgKGxvd2VzdCwgcHJvZHVjdCkgPT4gTWF0aC5taW4obG93ZXN0LCBwcm9kdWN0LmNvbXBhcmlzb25QcmljZSksCiAgICAgIE51bWJlci5QT1NJVElWRV9JTkZJTklUWQogICAgKSwKICAgIGVsaWdpYmxlQ291bnQ6IGVsaWdpYmxlUHJvZHVjdHMubGVuZ3RoLAogICAgdGl0bGU6IG1vbml0b3Iua2V5d29yZCwKICAgIG1hdGNoZWRDb3VudDogbWF0Y2hlZFByb2R1Y3RzLmxlbmd0aCwKICAgIG1pc3NpbmdTZWxlY3RlZENvdW50OiBtYXRjaFJ1bGUgPyAwIDogc2VsZWN0ZWRQcm9kdWN0cy5sZW5ndGggLSBwcm9kdWN0cy5sZW5ndGgKICB9OwoKICBhd2FpdCB1cGRhdGVNb25pdG9yKG1vbml0b3IuaWQsIHBhdGNoKTsKICBpZiAobmV3bHlNYXRjaGVkLmxlbmd0aCkgewogICAgYXdhaXQgbm90aWZ5TWF0Y2hlcyhtb25pdG9yLCBuZXdseU1hdGNoZWQuc29ydCgobGVmdCwgcmlnaHQpID0+IGxlZnQuY29tcGFyaXNvblByaWNlIC0gcmlnaHQuY29tcGFyaXNvblByaWNlKSk7CiAgfQoKICByZXR1cm4geyAuLi5tb25pdG9yLCAuLi5wYXRjaCwgbm90aWZpZWQ6IG5ld2x5TWF0Y2hlZC5sZW5ndGggPiAwIH07Cn0KCmFzeW5jIGZ1bmN0aW9uIG5vdGlmeU1hdGNoZXMobW9uaXRvciwgcHJvZHVjdHMpIHsKICBjb25zdCBub3RpZmljYXRpb25JZCA9IGBwcmljZS0ke21vbml0b3IuaWR9LSR7RGF0ZS5ub3coKX1gOwogIGNvbnN0IHZpc2libGVQcm9kdWN0cyA9IHByb2R1Y3RzLnNsaWNlKDAsIDMpOwogIGNvbnN0IG1lc3NhZ2UgPSB2aXNpYmxlUHJvZHVjdHMKICAgIC5tYXAoKHByb2R1Y3QpID0+IGAke3Byb2R1Y3QudGl0bGUuc2xpY2UoMCwgMzIpfSDCpSR7cHJvZHVjdC5wcmljZS50b0ZpeGVkKDIpfe+8iOavlOi+g+S7tyDCpSR7cHJvZHVjdC5jb21wYXJpc29uUHJpY2UudG9GaXhlZCgyKX3vvIznm67moIcgwqUke3Byb2R1Y3QudGhyZXNob2xkLnRvRml4ZWQoMil977yJYCkKICAgIC5qb2luKCJcbiIpOwogIGNvbnN0IG5vdGlmaWNhdGlvblRhcmdldHMgPSBhd2FpdCBjaHJvbWUuc3RvcmFnZS5sb2NhbC5nZXQoeyBub3RpZmljYXRpb25UYXJnZXRzOiB7fSB9KTsKICBub3RpZmljYXRpb25UYXJnZXRzLm5vdGlmaWNhdGlvblRhcmdldHNbbm90aWZpY2F0aW9uSWRdID0gdmlzaWJsZVByb2R1Y3RzWzBdLnVybDsKICBhd2FpdCBjaHJvbWUuc3RvcmFnZS5sb2NhbC5zZXQobm90aWZpY2F0aW9uVGFyZ2V0cyk7CgogIGF3YWl0IGNocm9tZS5ub3RpZmljYXRpb25zLmNyZWF0ZShub3RpZmljYXRpb25JZCwgewogICAgdHlwZTogImJhc2ljIiwKICAgIGljb25Vcmw6ICJpY29uMTI4LnBuZyIsCiAgICB0aXRsZTogYOS6rOS4nOS9juS7t+aPkOmGku+8miR7bW9uaXRvci5rZXl3b3JkfWAsCiAgICBtZXNzYWdlOiBgJHttZXNzYWdlfVxu54K55Ye75omT5byA5Yy56YWN55qE5L2O5Lu35ZWG5ZOBYAogIH0pOwp9Cgphc3luYyBmdW5jdGlvbiB1cGRhdGVNb25pdG9yKGlkLCBwYXRjaCkgewogIGNvbnN0IHsgbW9uaXRvcnMgfSA9IGF3YWl0IGNocm9tZS5zdG9yYWdlLmxvY2FsLmdldCh7IG1vbml0b3JzOiBbXSB9KTsKICBjb25zdCBuZXh0ID0gbW9uaXRvcnMubWFwKChtb25pdG9yKSA9PgogICAgbW9uaXRvci5pZCA9PT0gaWQgPyB7IC4uLm1vbml0b3IsIC4uLnBhdGNoIH0gOiBtb25pdG9yCiAgKTsKICBhd2FpdCBjaHJvbWUuc3RvcmFnZS5sb2NhbC5zZXQoeyBtb25pdG9yczogbmV4dCB9KTsKfQoKZnVuY3Rpb24gbm9ybWFsaXplS2V5d29yZHModmFsdWUpIHsKICBjb25zdCB2YWx1ZXMgPSBBcnJheS5pc0FycmF5KHZhbHVlKSA/IHZhbHVlIDogU3RyaW5nKHZhbHVlIHx8ICIiKS5zcGxpdCgvW1xzLO+8jOOAgTvvvJtdKy8pOwogIHJldHVybiBbLi4ubmV3IFNldCh2YWx1ZXMubWFwKChpdGVtKSA9PiBTdHJpbmcoaXRlbSkudHJpbSgpLnRvTG93ZXJDYXNlKCkpLmZpbHRlcihCb29sZWFuKSldOwp9CgpmdW5jdGlvbiBub3JtYWxpemVNYXRjaFJ1bGUocnVsZSkgewogIGlmICghcnVsZSB8fCB0eXBlb2YgcnVsZSAhPT0gIm9iamVjdCIpIHJldHVybiBudWxsOwogIGNvbnN0IG5vcm1hbGl6ZWQgPSB7CiAgICBpbmNsdWRlS2V5d29yZHM6IG5vcm1hbGl6ZUtleXdvcmRzKHJ1bGUuaW5jbHVkZUtleXdvcmRzKSwKICAgIGV4Y2x1ZGVLZXl3b3Jkczogbm9ybWFsaXplS2V5d29yZHMocnVsZS5leGNsdWRlS2V5d29yZHMpLAogICAgLi4ubm9ybWFsaXplVmFyaWFudFJ1bGUocnVsZSkKICB9OwogIHJldHVybiBub3JtYWxpemVkLmluY2x1ZGVLZXl3b3Jkcy5sZW5ndGgKICAgIHx8IG5vcm1hbGl6ZWQuZG9zYWdlRm9ybXM/Lmxlbmd0aAogICAgfHwgbm9ybWFsaXplZC5zdHJlbmd0aHM/Lmxlbmd0aAogICAgfHwgbm9ybWFsaXplZC51bml0U3BlY3M/Lmxlbmd0aAogICAgfHwgbm9ybWFsaXplZC5wYWNrQ291bnRzPy5sZW5ndGgKICAgID8gbm9ybWFsaXplZAogICAgOiBudWxsOwp9CgpmdW5jdGlvbiBtYXRjaGVzUnVsZShwcm9kdWN0LCBydWxlKSB7CiAgY29uc3QgdGl0bGUgPSBTdHJpbmcocHJvZHVjdC50aXRsZSB8fCAiIikudG9Mb3dlckNhc2UoKS5yZXBsYWNlKC9ccysvZywgIiIpOwogIGNvbnN0IGF0dHJpYnV0ZXMgPSBwcm9kdWN0LmF0dHJpYnV0ZXMgfHwge307CiAgY29uc3Qga2V5d29yZE1hdGNoID0gcnVsZS5pbmNsdWRlS2V5d29yZHMuZXZlcnkoKGtleXdvcmQpID0+IHRpdGxlLmluY2x1ZGVzKGtleXdvcmQucmVwbGFjZSgvXHMrL2csICIiKSkpOwogIGNvbnN0IGV4Y2x1ZGVkID0gcnVsZS5leGNsdWRlS2V5d29yZHMuc29tZSgoa2V5d29yZCkgPT4gdGl0bGUuaW5jbHVkZXMoa2V5d29yZC5yZXBsYWNlKC9ccysvZywgIiIpKSk7CiAgY29uc3QgZG9zYWdlTWF0Y2ggPSAhcnVsZS5kb3NhZ2VGb3Jtcz8ubGVuZ3RoCiAgICB8fCBydWxlLmRvc2FnZUZvcm1zLmluY2x1ZGVzKFN0cmluZyhhdHRyaWJ1dGVzLmRvc2FnZUZvcm0gfHwgIiIpLnRvTG93ZXJDYXNlKCkpOwogIGNvbnN0IHN0cmVuZ3RoTWF0Y2ggPSAhcnVsZS5zdHJlbmd0aHM/Lmxlbmd0aAogICAgfHwgcnVsZS5zdHJlbmd0aHMuaW5jbHVkZXMoU3RyaW5nKGF0dHJpYnV0ZXMuc3RyZW5ndGggfHwgIiIpLnRvTG93ZXJDYXNlKCkucmVwbGFjZSgvXHMrL2csICIiKSk7CiAgY29uc3QgdW5pdFNwZWNNYXRjaCA9ICFydWxlLnVuaXRTcGVjcz8ubGVuZ3RoCiAgICB8fCBydWxlLnVuaXRTcGVjcy5pbmNsdWRlcyhTdHJpbmcoYXR0cmlidXRlcy51bml0U3BlYyB8fCAiIikudG9Mb3dlckNhc2UoKS5yZXBsYWNlKC9ccysvZywgIiIpKTsKICBjb25zdCBwYWNrTWF0Y2ggPSAhcnVsZS5wYWNrQ291bnRzPy5sZW5ndGgKICAgIHx8IHJ1bGUucGFja0NvdW50cy5pbmNsdWRlcyhOdW1iZXIoYXR0cmlidXRlcy5wYWNrQ291bnQpKTsKICByZXR1cm4ga2V5d29yZE1hdGNoICYmICFleGNsdWRlZCAmJiBkb3NhZ2VNYXRjaCAmJiBzdHJlbmd0aE1hdGNoICYmIHVuaXRTcGVjTWF0Y2ggJiYgcGFja01hdGNoOwp9CgpmdW5jdGlvbiBub3JtYWxpemVWYXJpYW50UnVsZShydWxlKSB7CiAgY29uc3QgdmFsdWUgPSBydWxlICYmIHR5cGVvZiBydWxlID09PSAib2JqZWN0IiA/IHJ1bGUgOiB7fTsKICBjb25zdCBwYWNrQ291bnRzID0gQXJyYXkuaXNBcnJheSh2YWx1ZS5wYWNrQ291bnRzKQogICAgPyBbLi4ubmV3IFNldCh2YWx1ZS5wYWNrQ291bnRzLm1hcChOdW1iZXIpLmZpbHRlcigoY291bnQpID0+IE51bWJlci5pc0ludGVnZXIoY291bnQpICYmIGNvdW50ID4gMCkpXQogICAgOiBudWxsOwogIGNvbnN0IHByaWNlQmFzaXMgPSBbInRvdGFsIiwgInBlckJveCIsICJwZXJVbml0Il0uaW5jbHVkZXModmFsdWUucHJpY2VCYXNpcykKICAgID8gdmFsdWUucHJpY2VCYXNpcwogICAgOiAidG90YWwiOwogIHJldHVybiB7CiAgICBkb3NhZ2VGb3Jtczogbm9ybWFsaXplS2V5d29yZHModmFsdWUuZG9zYWdlRm9ybXMgfHwgKHZhbHVlLmRvc2FnZUZvcm0gPyBbdmFsdWUuZG9zYWdlRm9ybV0gOiBbXSkpLAogICAgc3RyZW5ndGhzOiBub3JtYWxpemVLZXl3b3Jkcyh2YWx1ZS5zdHJlbmd0aHMgfHwgKHZhbHVlLnN0cmVuZ3RoID8gW3ZhbHVlLnN0cmVuZ3RoXSA6IFtdKSkKICAgICAgLm1hcCgoaXRlbSkgPT4gaXRlbS5yZXBsYWNlKC9ccysvZywgIiIpKSwKICAgIHVuaXRTcGVjczogbm9ybWFsaXplS2V5d29yZHModmFsdWUudW5pdFNwZWNzIHx8ICh2YWx1ZS51bml0U3BlYyA/IFt2YWx1ZS51bml0U3BlY10gOiBbXSkpCiAgICAgIC5tYXAoKGl0ZW0pID0+IGl0ZW0ucmVwbGFjZSgvXHMrL2csICIiKSksCiAgICBwYWNrQ291bnRzOiBwYWNrQ291bnRzPy5sZW5ndGggPyBwYWNrQ291bnRzLnNvcnQoKGxlZnQsIHJpZ2h0KSA9PiBsZWZ0IC0gcmlnaHQpIDogbnVsbCwKICAgIHByaWNlQmFzaXMKICB9Owp9CgpmdW5jdGlvbiBub3JtYWxpemVUaHJlc2hvbGRSdWxlcyh2YWx1ZSkgewogIGNvbnN0IGlucHV0ID0gdmFsdWUgJiYgdHlwZW9mIHZhbHVlID09PSAib2JqZWN0IiA/IHZhbHVlIDoge307CiAgY29uc3QgZGVmYXVsdFZhbHVlID0gTnVtYmVyKGlucHV0LmRlZmF1bHQpOwogIGNvbnN0IG5vcm1hbGl6ZWQgPSB7CiAgICBkZWZhdWx0OiBOdW1iZXIuaXNGaW5pdGUoZGVmYXVsdFZhbHVlKSAmJiBkZWZhdWx0VmFsdWUgPiAwID8gZGVmYXVsdFZhbHVlIDogbnVsbCwKICAgIGJ5VmFyaWFudDoge30KICB9OwogIGNvbnN0IHZhcmlhbnRFbnRyaWVzID0gaW5wdXQuYnlWYXJpYW50IHx8IGlucHV0LmJ5UGFjayB8fCB7fTsKICBpZiAodmFyaWFudEVudHJpZXMgJiYgdHlwZW9mIHZhcmlhbnRFbnRyaWVzID09PSAib2JqZWN0IikgewogICAgZm9yIChjb25zdCBbdmFyaWFudCwgdGhyZXNob2xkXSBvZiBPYmplY3QuZW50cmllcyh2YXJpYW50RW50cmllcykpIHsKICAgICAgY29uc3QgYW1vdW50ID0gTnVtYmVyKHRocmVzaG9sZCk7CiAgICAgIGlmIChOdW1iZXIuaXNGaW5pdGUoYW1vdW50KSAmJiBhbW91bnQgPiAwKSB7CiAgICAgICAgbm9ybWFsaXplZC5ieVZhcmlhbnRbU3RyaW5nKHZhcmlhbnQpXSA9IGFtb3VudDsKICAgICAgfQogICAgfQogIH0KICBpZiAoIW5vcm1hbGl6ZWQuZGVmYXVsdCAmJiAhT2JqZWN0LmtleXMobm9ybWFsaXplZC5ieVZhcmlhbnQpLmxlbmd0aCkgewogICAgdGhyb3cgbmV3IEVycm9yKCLor7fovpPlhaXmnInmlYjnmoTnm67moIfku7fmoLwiKTsKICB9CiAgaWYgKE9iamVjdC5rZXlzKG5vcm1hbGl6ZWQuYnlWYXJpYW50KS5sZW5ndGggJiYgIW5vcm1hbGl6ZWQuZGVmYXVsdCkgewogICAgbm9ybWFsaXplZC5kZWZhdWx0ID0gbnVsbDsKICB9CiAgcmV0dXJuIG5vcm1hbGl6ZWQ7Cn0KCmZ1bmN0aW9uIGdldFRocmVzaG9sZEZvclByb2R1Y3QocHJvZHVjdCwgbW9uaXRvcikgewogIGNvbnN0IHJ1bGVzID0gbW9uaXRvci50aHJlc2hvbGRSdWxlcyB8fCB7CiAgICBkZWZhdWx0OiBOdW1iZXIobW9uaXRvci50aHJlc2hvbGQpLAogICAgYnlWYXJpYW50OiB7fQogIH07CiAgaWYgKHJ1bGVzLmJ5VmFyaWFudCAmJiBPYmplY3Qua2V5cyhydWxlcy5ieVZhcmlhbnQpLmxlbmd0aCkgewogICAgcmV0dXJuIE51bWJlcihydWxlcy5ieVZhcmlhbnRbZ2V0VmFyaWFudEtleShwcm9kdWN0KV0pIHx8IG51bGw7CiAgfQogIGlmIChydWxlcy5ieVBhY2sgJiYgT2JqZWN0LmtleXMocnVsZXMuYnlQYWNrKS5sZW5ndGgpIHsKICAgIHJldHVybiBOdW1iZXIocnVsZXMuYnlQYWNrW1N0cmluZyhwcm9kdWN0LmF0dHJpYnV0ZXM/LnBhY2tDb3VudCldKSB8fCBudWxsOwogIH0KICByZXR1cm4gTnVtYmVyKHJ1bGVzLmRlZmF1bHQpIHx8IG51bGw7Cn0KCmZ1bmN0aW9uIGdldFZhcmlhbnRLZXkocHJvZHVjdCkgewogIGNvbnN0IGF0dHJpYnV0ZXMgPSBwcm9kdWN0LmF0dHJpYnV0ZXMgfHwge307CiAgcmV0dXJuIFthdHRyaWJ1dGVzLnN0cmVuZ3RoLCBhdHRyaWJ1dGVzLnVuaXRTcGVjLCBhdHRyaWJ1dGVzLnBhY2tDb3VudF0KICAgIC5tYXAoKHZhbHVlKSA9PiBTdHJpbmcodmFsdWUgPz8gIiIpLnRvTG93ZXJDYXNlKCkucmVwbGFjZSgvXHMrL2csICIiKSkKICAgIC5qb2luKCJ8IikgfHwgImRlZmF1bHQiOwp9CgpmdW5jdGlvbiBnZXRDb21wYXJhYmxlUHJpY2UocHJvZHVjdCwgcnVsZSkgewogIGlmIChydWxlPy5wcmljZUJhc2lzID09PSAicGVyQm94IikgewogICAgY29uc3QgcGFja0NvdW50ID0gZ2V0RWZmZWN0aXZlQm94Q291bnQocHJvZHVjdCk7CiAgICByZXR1cm4gcGFja0NvdW50ID4gMAogICAgICA/IHByb2R1Y3QucHJpY2UgLyBwYWNrQ291bnQKICAgICAgOiBudWxsOwogIH0KICBpZiAocnVsZT8ucHJpY2VCYXNpcyA9PT0gInBlclVuaXQiKSB7CiAgICBjb25zdCBwYWNrQ291bnQgPSBnZXRFZmZlY3RpdmVCb3hDb3VudChwcm9kdWN0KTsKICAgIGNvbnN0IHVuaXRzUGVyUGFjayA9IHByb2R1Y3QuYXR0cmlidXRlcz8udW5pdHNQZXJQYWNrOwogICAgcmV0dXJuIHBhY2tDb3VudCA+IDAgJiYgdW5pdHNQZXJQYWNrID4gMAogICAgICA/IHByb2R1Y3QucHJpY2UgLyAocGFja0NvdW50ICogdW5pdHNQZXJQYWNrKQogICAgICA6IG51bGw7CiAgfQogIHJldHVybiBwcm9kdWN0LnByaWNlOwp9CgpmdW5jdGlvbiBnZXRFZmZlY3RpdmVCb3hDb3VudChwcm9kdWN0KSB7CiAgY29uc3QgcGFja0NvdW50ID0gTnVtYmVyKHByb2R1Y3QuYXR0cmlidXRlcz8ucGFja0NvdW50KTsKICBpZiAocGFja0NvdW50ID4gMCkgcmV0dXJuIHBhY2tDb3VudDsKICByZXR1cm4gTnVtYmVyKHByb2R1Y3QuYXR0cmlidXRlcz8udW5pdHNQZXJQYWNrKSA+IDAgPyAxIDogbnVsbDsKfQoKZnVuY3Rpb24gd2FpdEZvclRhYkNvbXBsZXRlKHRhYklkKSB7CiAgcmV0dXJuIG5ldyBQcm9taXNlKChyZXNvbHZlLCByZWplY3QpID0+IHsKICAgIGxldCBmaW5pc2hlZCA9IGZhbHNlOwogICAgY29uc3QgdGltZW91dCA9IHNldFRpbWVvdXQoKCkgPT4gZmluaXNoKG5ldyBFcnJvcigi6aG16Z2i5Yqg6L296LaF5pe2IikpLCBUQUJfVElNRU9VVF9NUyk7CgogICAgZnVuY3Rpb24gZmluaXNoKGVycm9yKSB7CiAgICAgIGlmIChmaW5pc2hlZCkgcmV0dXJuOwogICAgICBmaW5pc2hlZCA9IHRydWU7CiAgICAgIGNsZWFyVGltZW91dCh0aW1lb3V0KTsKICAgICAgY2hyb21lLnRhYnMub25VcGRhdGVkLnJlbW92ZUxpc3RlbmVyKGxpc3RlbmVyKTsKICAgICAgZXJyb3IgPyByZWplY3QoZXJyb3IpIDogcmVzb2x2ZSgpOwogICAgfQoKICAgIGZ1bmN0aW9uIGxpc3RlbmVyKHVwZGF0ZWRUYWJJZCwgY2hhbmdlSW5mbykgewogICAgICBpZiAodXBkYXRlZFRhYklkID09PSB0YWJJZCAmJiBjaGFuZ2VJbmZvLnN0YXR1cyA9PT0gImNvbXBsZXRlIikgZmluaXNoKCk7CiAgICB9CgogICAgY2hyb21lLnRhYnMub25VcGRhdGVkLmFkZExpc3RlbmVyKGxpc3RlbmVyKTsKICAgIGNocm9tZS50YWJzLmdldCh0YWJJZCkudGhlbigodGFiKSA9PiB7CiAgICAgIGlmICh0YWIuc3RhdHVzID09PSAiY29tcGxldGUiKSBmaW5pc2goKTsKICAgIH0pLmNhdGNoKCgpID0+IGZpbmlzaChuZXcgRXJyb3IoIuaXoOazleivu+WPlua1j+iniOWZqOagh+etvumhteeKtuaAgSIpKSk7CiAgfSk7Cn0KCmZ1bmN0aW9uIHNsZWVwKG1zKSB7CiAgcmV0dXJuIG5ldyBQcm9taXNlKChyZXNvbHZlKSA9PiBzZXRUaW1lb3V0KHJlc29sdmUsIG1zKSk7Cn0K
+importScripts("platforms/jd.js");
+
+const ALARM_NAME = "jd-price-monitor";
+const DEFAULT_INTERVAL_MINUTES = 30;
+const TAB_TIMEOUT_MS = 25000;
+const MAX_SEARCH_PAGES = 3;
+const SEARCH_PAGE_DELAY_MS = 700;
+const TAB_MESSAGE_TIMEOUT_MS = 20000;
+
+chrome.runtime.onInstalled.addListener(() => ensureAlarm());
+chrome.runtime.onStartup.addListener(() => ensureAlarm());
+ensureAlarm();
+
+chrome.alarms.onAlarm.addListener(async (alarm) => {
+  if (alarm.name !== ALARM_NAME) return;
+  await checkAllMonitors();
+});
+
+chrome.notifications.onClicked.addListener(async (notificationId) => {
+  const { notificationTargets } = await chrome.storage.local.get({ notificationTargets: {} });
+  const url = notificationTargets[notificationId];
+  if (!url) return;
+  await chrome.tabs.create({ url, active: true });
+  delete notificationTargets[notificationId];
+  await chrome.storage.local.set({ notificationTargets });
+});
+
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "START_PRODUCT_SELECTION") {
+    startProductSelection(message.keyword, message.platform || "jd")
+      .then((result) => sendResponse({ ok: true, result }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message?.type === "CREATE_MONITOR") {
+    createMonitorFromSelection(
+      message.productIds,
+      message.includeKeywords,
+      message.excludeKeywords,
+      message.variantRule,
+      message.thresholdRules
+    )
+      .then((result) => sendResponse({ ok: true, result }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message?.type === "CHECK_ONE") {
+    checkMonitor(message.id)
+      .then((result) => sendResponse({ ok: true, result }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message?.type === "GET_STATUS") {
+    chrome.storage.local.get({ monitors: [] }).then(({ monitors }) => {
+      sendResponse({ ok: true, monitors });
+    });
+    return true;
+  }
+});
+
+async function ensureAlarm() {
+  const existing = await chrome.alarms.get(ALARM_NAME);
+  if (!existing) {
+    await chrome.alarms.create(ALARM_NAME, {
+      delayInMinutes: DEFAULT_INTERVAL_MINUTES,
+      periodInMinutes: DEFAULT_INTERVAL_MINUTES
+    });
+  }
+}
+
+async function checkAllMonitors() {
+  const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  for (const monitor of monitors) {
+    try {
+      await checkMonitor(monitor.id);
+    } catch (error) {
+      await updateMonitor(monitor.id, {
+        lastCheckedAt: Date.now(),
+        lastError: error.message
+      });
+    }
+  }
+}
+
+async function startProductSelection(keyword, platform = "jd") {
+  const normalizedKeyword = String(keyword || "").trim();
+  if (!normalizedKeyword) throw new Error("监控关键词不能为空");
+  const adapter = getPlatformAdapter(platform);
+
+  await setSearchStatus({
+    state: "searching",
+    platform: adapter.id,
+    keyword: normalizedKeyword,
+    page: 0,
+    totalPages: MAX_SEARCH_PAGES,
+    pageStats: []
+  });
+  try {
+    const searchResult = await searchProducts(normalizedKeyword, adapter.id);
+    const products = searchResult.products;
+    if (!products.length) {
+      throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
+    }
+
+    await chrome.storage.local.set({
+      selectionDraft: {
+        keyword: normalizedKeyword,
+        platform: adapter.id,
+        products,
+        pagesLoaded: searchResult.pagesLoaded,
+        pageStats: searchResult.pageStats,
+        createdAt: Date.now()
+      }
+    });
+    await chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true });
+    await setSearchStatus({
+      state: "done",
+      platform: adapter.id,
+      keyword: normalizedKeyword,
+      page: searchResult.pagesLoaded,
+      totalPages: MAX_SEARCH_PAGES,
+      count: products.length,
+      pageStats: searchResult.pageStats
+    });
+    return {
+      count: products.length,
+      pagesLoaded: searchResult.pagesLoaded,
+      pageStats: searchResult.pageStats
+    };
+  } catch (error) {
+    await setSearchStatus({
+      state: "error",
+      platform: adapter.id,
+      keyword: normalizedKeyword,
+      error: error.message
+    });
+    throw error;
+  }
+}
+
+async function searchProducts(keyword, platform = "jd") {
+  const adapter = getPlatformAdapter(platform);
+
+  const products = [];
+  const seen = new Set();
+  const pageStats = [];
+  const searchWindow = await chrome.windows.create({
+    url: adapter.buildSearchUrl(keyword, 1),
+    focused: false,
+    state: "minimized",
+    type: "popup"
+  });
+  const tabId = searchWindow.tabs?.[0]?.id;
+  if (!tabId) throw new Error("无法创建后台搜索窗口");
+  let pagesLoaded = 0;
+  try {
+    for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
+      await setSearchStatus({
+        state: "searching",
+        platform: adapter.id,
+        keyword,
+        page,
+        totalPages: MAX_SEARCH_PAGES,
+        pagesLoaded,
+        pageStats
+      });
+      if (page > 1) {
+        const pageResponse = await sendTabMessage(tabId, {
+          type: "GO_TO_SEARCH_PAGE",
+          page
+        });
+        if (!pageResponse?.ok) {
+          throw new Error(pageResponse?.error || `未能切换到${adapter.name}第 ${page} 页`);
+        }
+      } else {
+        await waitForTabComplete(tabId);
+      }
+
+      const response = await sendTabMessage(tabId, {
+        type: "READ_SEARCH_RESULTS",
+        platform: adapter.id,
+        expectedPage: page
+      });
+      if (!Array.isArray(response?.products)) {
+        throw new Error(response?.error || `未能读取${adapter.name}第 ${page} 页搜索结果`);
+      }
+
+      const pageProducts = response.products;
+      pagesLoaded = page;
+      let newProducts = 0;
+      for (const product of pageProducts) {
+        if (seen.has(String(product.id))) continue;
+        seen.add(String(product.id));
+        products.push(product);
+        newProducts += 1;
+      }
+
+      // 京东偶尔会把分页请求重定向回第一页；继续请求其余页，但不要把重复结果误当成新商品。
+      if (page > 1 && pageProducts.length && newProducts === 0) {
+        console.warn(`${adapter.name}第 ${page} 页返回了重复结果，可能触发了分页重定向或验证`);
+      }
+      pageStats.push({ page, received: pageProducts.length, newProducts });
+      await setSearchStatus({
+        state: "searching",
+        keyword,
+        page,
+        totalPages: MAX_SEARCH_PAGES,
+        pagesLoaded,
+        pageStats
+      });
+      if (!pageProducts.length) break;
+      if (page < MAX_SEARCH_PAGES) await sleep(SEARCH_PAGE_DELAY_MS);
+    }
+    return { products, pagesLoaded, pageStats };
+  } finally {
+    await chrome.windows.remove(searchWindow.id).catch(() => {});
+  }
+}
+
+function sendTabMessage(tabId, message) {
+  return Promise.race([
+    chrome.tabs.sendMessage(tabId, message),
+    new Promise((_, reject) => {
+      setTimeout(() => reject(new Error("商品页面响应超时，请刷新扩展后重试")), TAB_MESSAGE_TIMEOUT_MS);
+    })
+  ]);
+}
+
+function getPlatformAdapter(platform) {
+  const adapter = self.PriceAdapters?.[String(platform || "jd")];
+  if (!adapter) throw new Error(`暂不支持${platform || "该平台"}`);
+  if (adapter.supported === false) throw new Error(`${adapter.name}适配器正在开发中`);
+  return adapter;
+}
+
+function adapterName(platform) {
+  return self.PriceAdapters?.[String(platform || "jd")]?.name || "商品";
+}
+
+async function setSearchStatus(status) {
+  await chrome.storage.local.set({ searchStatus: { ...status, updatedAt: Date.now() } });
+}
+
+async function createMonitorFromSelection(
+  productIds,
+  includeKeywords,
+  excludeKeywords,
+  variantRule,
+  thresholdRules
+) {
+  const { selectionDraft } = await chrome.storage.local.get({ selectionDraft: null });
+  if (!selectionDraft?.products?.length) throw new Error("商品选择已过期，请重新搜索");
+  const normalizedThresholdRules = normalizeThresholdRules(thresholdRules);
+
+  const ids = new Set((Array.isArray(productIds) ? productIds : []).map(String));
+  const selectedProducts = selectionDraft.products.filter((product) => ids.has(String(product.id)));
+  const matchRule = {
+    includeKeywords: normalizeKeywords(includeKeywords),
+    excludeKeywords: normalizeKeywords(excludeKeywords),
+    ...normalizeVariantRule(variantRule)
+  };
+  if (!matchRule.includeKeywords.length) throw new Error("请至少填写一个必含关键词");
+
+  const monitor = {
+    id: crypto.randomUUID(),
+    platform: selectionDraft.platform || "jd",
+    keyword: selectionDraft.keyword,
+    threshold: normalizedThresholdRules.default,
+    thresholdRules: normalizedThresholdRules,
+    matchRule,
+    exampleProducts: selectedProducts,
+    matches: {},
+    lowestPrice: null,
+    eligibleCount: 0,
+    lastCheckedAt: null,
+    lastError: ""
+  };
+  const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  monitors.push(monitor);
+  await chrome.storage.local.set({ monitors, selectionDraft: null });
+  try {
+    const result = await checkMonitor(monitor.id);
+    return { monitor: result };
+  } catch (error) {
+    await updateMonitor(monitor.id, {
+      lastCheckedAt: Date.now(),
+      lastError: error.message
+    });
+    return { monitor: { ...monitor, lastCheckedAt: Date.now(), lastError: error.message } };
+  }
+}
+
+async function checkMonitor(id) {
+  const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  const monitor = monitors.find((item) => item.id === id);
+  if (!monitor) throw new Error("监控任务不存在");
+
+  const adapter = getPlatformAdapter(monitor.platform || "jd");
+  if (!monitor.keyword?.trim()) throw new Error("监控关键词不能为空");
+
+  const responseProducts = (await searchProducts(monitor.keyword.trim(), monitor.platform || "jd")).products;
+  if (!responseProducts.length) {
+    throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
+  }
+
+  const selectedProducts = Array.isArray(monitor.selectedProducts)
+    ? monitor.selectedProducts
+    : [];
+  const matchRule = normalizeMatchRule(monitor.matchRule);
+  const selectedIds = new Set(selectedProducts.map((product) => String(product.id)));
+  const matchedProducts = matchRule
+    ? responseProducts.filter((product) => matchesRule(product, matchRule))
+    : selectedProducts.length
+      ? responseProducts.filter((product) => selectedIds.has(String(product.id)))
+      : responseProducts;
+
+  if (!matchedProducts.length) {
+    throw new Error(
+      matchRule
+        ? "当前搜索结果前 3 页没有符合匹配规则的商品"
+        : selectedProducts.length
+        ? "选中的商品不在当前搜索结果前 3 页，暂时无法确认价格"
+        : "未读取到商品结果，可能是页面未加载或触发了平台验证"
+    );
+  }
+
+  const products = matchedProducts
+    .map((product) => ({
+      ...product,
+      comparisonPrice: getComparablePrice(product, matchRule),
+      threshold: getThresholdForProduct(product, monitor)
+    }))
+    .filter((product) => Number.isFinite(product.comparisonPrice) && Number.isFinite(product.threshold));
+  if (!products.length) {
+    throw new Error("找到符合条件的商品，但无法解析其装量，暂时无法计算比较价格");
+  }
+
+  const previousMatches = monitor.matches || {};
+  const nextMatches = { ...previousMatches };
+  const newlyMatched = [];
+
+  for (const product of products) {
+    const isBelow = product.comparisonPrice < product.threshold;
+    const previous = previousMatches[product.id] || {};
+    nextMatches[product.id] = {
+      title: product.title,
+      price: product.price,
+      comparisonPrice: product.comparisonPrice,
+      threshold: product.threshold,
+      attributes: product.attributes,
+      url: product.url,
+      wasBelowThreshold: isBelow,
+      lastSeenAt: Date.now()
+    };
+    if (isBelow && previous.wasBelowThreshold !== true) {
+      newlyMatched.push(product);
+    }
+  }
+
+  const eligibleProducts = products
+    .filter((product) => product.comparisonPrice < product.threshold)
+    .sort((left, right) => left.comparisonPrice - right.comparisonPrice);
+  const latestProducts = products.map((product) => ({
+    id: product.id,
+    url: product.url,
+    title: product.title,
+    price: product.price,
+    comparisonPrice: product.comparisonPrice,
+    threshold: product.threshold,
+    attributes: product.attributes
+  }));
+  const patch = {
+    lastCheckedAt: Date.now(),
+    lastError: "",
+    matches: nextMatches,
+    latestProducts,
+    lowestPrice: products.reduce(
+      (lowest, product) => Math.min(lowest, product.comparisonPrice),
+      Number.POSITIVE_INFINITY
+    ),
+    eligibleCount: eligibleProducts.length,
+    title: monitor.keyword,
+    platform: monitor.platform || "jd",
+    matchedCount: matchedProducts.length,
+    missingSelectedCount: matchRule ? 0 : selectedProducts.length - products.length
+  };
+
+  await updateMonitor(monitor.id, patch);
+  if (newlyMatched.length) {
+    await notifyMatches(monitor, newlyMatched.sort((left, right) => left.comparisonPrice - right.comparisonPrice));
+  }
+
+  return { ...monitor, ...patch, notified: newlyMatched.length > 0 };
+}
+
+async function notifyMatches(monitor, products) {
+  const notificationId = `price-${monitor.id}-${Date.now()}`;
+  const visibleProducts = products.slice(0, 3);
+  const message = visibleProducts
+    .map((product) => `${product.title.slice(0, 32)} ¥${product.price.toFixed(2)}（比较价 ¥${product.comparisonPrice.toFixed(2)}，目标 ¥${product.threshold.toFixed(2)}）`)
+    .join("\n");
+  const notificationTargets = await chrome.storage.local.get({ notificationTargets: {} });
+  notificationTargets.notificationTargets[notificationId] = visibleProducts[0].url;
+  await chrome.storage.local.set(notificationTargets);
+
+  await chrome.notifications.create(notificationId, {
+    type: "basic",
+    iconUrl: "icon128.png",
+    title: `${adapterName(monitor.platform)}低价提醒：${monitor.keyword}`,
+    message: `${message}\n点击打开匹配的低价商品`
+  });
+}
+
+async function updateMonitor(id, patch) {
+  const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  const next = monitors.map((monitor) =>
+    monitor.id === id ? { ...monitor, ...patch } : monitor
+  );
+  await chrome.storage.local.set({ monitors: next });
+}
+
+function normalizeKeywords(value) {
+  const values = Array.isArray(value) ? value : String(value || "").split(/[\s,，、;；]+/);
+  return [...new Set(values.map((item) => String(item).trim().toLowerCase()).filter(Boolean))];
+}
+
+function normalizeMatchRule(rule) {
+  if (!rule || typeof rule !== "object") return null;
+  const normalized = {
+    includeKeywords: normalizeKeywords(rule.includeKeywords),
+    excludeKeywords: normalizeKeywords(rule.excludeKeywords),
+    ...normalizeVariantRule(rule)
+  };
+  return normalized.includeKeywords.length
+    || normalized.dosageForms?.length
+    || normalized.strengths?.length
+    || normalized.unitSpecs?.length
+    || normalized.packCounts?.length
+    ? normalized
+    : null;
+}
+
+function matchesRule(product, rule) {
+  const title = String(product.title || "").toLowerCase().replace(/\s+/g, "");
+  const attributes = product.attributes || {};
+  const keywordMatch = rule.includeKeywords.every((keyword) => title.includes(keyword.replace(/\s+/g, "")));
+  const excluded = rule.excludeKeywords.some((keyword) => title.includes(keyword.replace(/\s+/g, "")));
+  const dosageMatch = !rule.dosageForms?.length
+    || rule.dosageForms.includes(String(attributes.dosageForm || "").toLowerCase());
+  const strengthMatch = !rule.strengths?.length
+    || rule.strengths.includes(String(attributes.strength || "").toLowerCase().replace(/\s+/g, ""));
+  const unitSpecMatch = !rule.unitSpecs?.length
+    || rule.unitSpecs.includes(String(attributes.unitSpec || "").toLowerCase().replace(/\s+/g, ""));
+  const packMatch = !rule.packCounts?.length
+    || rule.packCounts.includes(Number(attributes.packCount));
+  return keywordMatch && !excluded && dosageMatch && strengthMatch && unitSpecMatch && packMatch;
+}
+
+function normalizeVariantRule(rule) {
+  const value = rule && typeof rule === "object" ? rule : {};
+  const packCounts = Array.isArray(value.packCounts)
+    ? [...new Set(value.packCounts.map(Number).filter((count) => Number.isInteger(count) && count > 0))]
+    : null;
+  const priceBasis = ["total", "perBox", "perUnit"].includes(value.priceBasis)
+    ? value.priceBasis
+    : "total";
+  return {
+    dosageForms: normalizeKeywords(value.dosageForms || (value.dosageForm ? [value.dosageForm] : [])),
+    strengths: normalizeKeywords(value.strengths || (value.strength ? [value.strength] : []))
+      .map((item) => item.replace(/\s+/g, "")),
+    unitSpecs: normalizeKeywords(value.unitSpecs || (value.unitSpec ? [value.unitSpec] : []))
+      .map((item) => item.replace(/\s+/g, "")),
+    packCounts: packCounts?.length ? packCounts.sort((left, right) => left - right) : null,
+    priceBasis
+  };
+}
+
+function normalizeThresholdRules(value) {
+  const input = value && typeof value === "object" ? value : {};
+  const defaultValue = Number(input.default);
+  const normalized = {
+    default: Number.isFinite(defaultValue) && defaultValue > 0 ? defaultValue : null,
+    byVariant: {}
+  };
+  const variantEntries = input.byVariant || input.byPack || {};
+  if (variantEntries && typeof variantEntries === "object") {
+    for (const [variant, threshold] of Object.entries(variantEntries)) {
+      const amount = Number(threshold);
+      if (Number.isFinite(amount) && amount > 0) {
+        normalized.byVariant[String(variant)] = amount;
+      }
+    }
+  }
+  if (!normalized.default && !Object.keys(normalized.byVariant).length) {
+    throw new Error("请输入有效的目标价格");
+  }
+  if (Object.keys(normalized.byVariant).length && !normalized.default) {
+    normalized.default = null;
+  }
+  return normalized;
+}
+
+function getThresholdForProduct(product, monitor) {
+  const rules = monitor.thresholdRules || {
+    default: Number(monitor.threshold),
+    byVariant: {}
+  };
+  if (rules.byVariant && Object.keys(rules.byVariant).length) {
+    return Number(rules.byVariant[getVariantKey(product)]) || null;
+  }
+  if (rules.byPack && Object.keys(rules.byPack).length) {
+    return Number(rules.byPack[String(product.attributes?.packCount)]) || null;
+  }
+  return Number(rules.default) || null;
+}
+
+function getVariantKey(product) {
+  const attributes = product.attributes || {};
+  return [attributes.strength, attributes.unitSpec, attributes.packCount]
+    .map((value) => String(value ?? "").toLowerCase().replace(/\s+/g, ""))
+    .join("|") || "default";
+}
+
+function getComparablePrice(product, rule) {
+  if (rule?.priceBasis === "perBox") {
+    const packCount = getEffectiveBoxCount(product);
+    return packCount > 0
+      ? product.price / packCount
+      : null;
+  }
+  if (rule?.priceBasis === "perUnit") {
+    const packCount = getEffectiveBoxCount(product);
+    const unitsPerPack = product.attributes?.unitsPerPack;
+    return packCount > 0 && unitsPerPack > 0
+      ? product.price / (packCount * unitsPerPack)
+      : null;
+  }
+  return product.price;
+}
+
+function getEffectiveBoxCount(product) {
+  const packCount = Number(product.attributes?.packCount);
+  if (packCount > 0) return packCount;
+  return Number(product.attributes?.unitsPerPack) > 0 ? 1 : null;
+}
+
+function waitForTabComplete(tabId) {
+  return new Promise((resolve, reject) => {
+    let finished = false;
+    const timeout = setTimeout(() => finish(new Error("页面加载超时")), TAB_TIMEOUT_MS);
+
+    function finish(error) {
+      if (finished) return;
+      finished = true;
+      clearTimeout(timeout);
+      chrome.tabs.onUpdated.removeListener(listener);
+      error ? reject(error) : resolve();
+    }
+
+    function listener(updatedTabId, changeInfo) {
+      if (updatedTabId === tabId && changeInfo.status === "complete") finish();
+    }
+
+    chrome.tabs.onUpdated.addListener(listener);
+    chrome.tabs.get(tabId).then((tab) => {
+      if (tab.status === "complete") finish();
+    }).catch(() => finish(new Error("无法读取浏览器标签页状态")));
+  });
+}
+
+function sleep(ms) {
+  return new Promise((resolve) => setTimeout(resolve, ms));
+}
