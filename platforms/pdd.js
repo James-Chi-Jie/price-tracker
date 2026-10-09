@@ -6,8 +6,9 @@ self.PriceAdapters.pdd = {
   supported: true,
   pageNavigation: "url",
   buildSearchUrl(keyword, page = 1) {
-    const url = new URL("https://mobile.yangkeduo.com/search_result.html");
+    const url = new URL("https://mobile.pinduoduo.com/search_result.html");
     url.searchParams.set("search_key", keyword);
+    url.searchParams.set("search_type", "goods");
     const pageNumber = Math.max(1, Number(page) || 1);
     if (pageNumber > 1) url.searchParams.set("page", String(pageNumber));
     return url.href;
