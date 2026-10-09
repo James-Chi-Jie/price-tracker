@@ -3,13 +3,21 @@
   <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>京东低价预警</title>
+    <title>多平台低价预警</title>
     <link rel="stylesheet" href="popup.css">
   </head>
   <body>
     <main>
-      <h1>京东低价预警</h1>
+      <h1>多平台低价预警</h1>
       <form id="monitor-form">
+        <label>
+          监控平台
+          <select id="platform">
+            <option value="jd">京东</option>
+            <option value="tmall" disabled>天猫（开发中）</option>
+            <option value="pdd" disabled>拼多多（开发中）</option>
+          </select>
+        </label>
         <label>
           商品关键词（用于搜索）
           <input id="keyword" type="text" placeholder="例如：索尼 WH-1000XM5" required>
