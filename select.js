@@ -12,7 +12,7 @@ const thresholdsEl = document.querySelector("#thresholds");
 const thresholdHintEl = document.querySelector("#threshold-hint");
 
 let draft = null;
-const PLATFORM_LABELS = { jd: "京东", tmall: "天猫", pdd: "拼多多" };
+const PLATFORM_LABELS = { jd: "京东", taobao: "淘宝", tmall: "天猫" };
 
 init();
 
