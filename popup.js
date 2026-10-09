@@ -108,7 +108,8 @@ async function render() {
       ${error}
       <div class="actions">
         <button data-action="check" data-id="${monitor.id}">立即检查</button>
-        <button data-action="export" data-id="${monitor.id}">导出 CSV</button>
+        <button data-action="export-xlsx" data-id="${monitor.id}">导出 Excel</button>
+        <button data-action="export-csv" data-id="${monitor.id}">导出 CSV</button>
         <button class="danger" data-action="delete" data-id="${monitor.id}">删除</button>
       </div>`;
     monitorsEl.appendChild(card);
@@ -127,8 +128,13 @@ monitorsEl.addEventListener("click", async (event) => {
     return;
   }
 
-  if (button.dataset.action === "export") {
-    await exportMonitor(button.dataset.id);
+  if (button.dataset.action === "export-xlsx") {
+    await exportMonitor(button.dataset.id, "xlsx");
+    return;
+  }
+
+  if (button.dataset.action === "export-csv") {
+    await exportMonitor(button.dataset.id, "csv");
     return;
   }
 
@@ -189,7 +195,7 @@ function formatVariantKey(value) {
     .join(" · ") || "规格待确认";
 }
 
-async function exportMonitor(id) {
+async function exportMonitor(id, format = "xlsx") {
   const { monitors } = await chrome.storage.local.get({ monitors: [] });
   const monitor = monitors.find((item) => item.id === id);
   if (!monitor) return showMessage("监控任务不存在");
@@ -239,30 +245,241 @@ async function exportMonitor(id) {
         product.attributes?.strength || "",
         product.attributes?.unitSpec || "",
         product.attributes?.packCount || "",
-        csvLink(product.url)
+        String(product.url ?? "").trim()
       );
       return row;
     })
   ];
-  const csv = "\uFEFF" + rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
-  const blobUrl = URL.createObjectURL(new Blob([csv], { type: "text/csv;charset=utf-8" }));
+
+  if (format === "csv") {
+    const csv = "\uFEFF" + rows.map((row) => row.map(csvCell).join(",")).join("\r\n") + "\r\n";
+    downloadBlob(
+      new Blob([csv], { type: "text/csv;charset=utf-8" }),
+      `price-monitor-${Date.now()}.csv`
+    );
+    showMessage(`已导出 ${products.length} 个商品 CSV`);
+    return;
+  }
+
+  const workbook = createXlsxWorkbook(headers, rows.slice(1));
+  downloadBlob(
+    new Blob([workbook], {
+      type: "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet"
+    }),
+    `price-monitor-${Date.now()}.xlsx`
+  );
+  showMessage(`已导出 ${products.length} 个商品 Excel`);
+}
+
+function downloadBlob(blob, filename) {
+  const blobUrl = URL.createObjectURL(blob);
   const link = document.createElement("a");
   link.href = blobUrl;
-  link.download = `jd-price-monitor-${Date.now()}.csv`;
+  link.download = filename;
+  link.style.display = "none";
+  document.body.appendChild(link);
   link.click();
+  link.remove();
   setTimeout(() => URL.revokeObjectURL(blobUrl), 1000);
-  showMessage(`已导出 ${products.length} 个商品`);
 }
 
 function csvCell(value) {
   return `"${String(value ?? "").replace(/"/g, '""')}"`;
 }
 
-function csvLink(value) {
-  const url = String(value ?? "").trim();
-  // CSV 在不同表格软件中的公式解析不一致，直接写出完整 URL，
-  // Excel/WPS 通常会自动识别为可点击链接，也不会因地区公式分隔符而失效。
-  return /^https:\/\//i.test(url) ? url : "";
+function createXlsxWorkbook(headers, dataRows) {
+  const rows = [headers, ...dataRows];
+  const hyperlinks = [];
+  const sheetRows = rows.map((row, rowIndex) => {
+    const cells = row.map((value, columnIndex) => {
+      const cellRef = `${xlsxColumnName(columnIndex)}${rowIndex + 1}`;
+      const isUrl = rowIndex > 0
+        && columnIndex === row.length - 1
+        && /^https:\/\//i.test(String(value ?? "").trim());
+      if (isUrl) {
+        const relationshipId = `rId${hyperlinks.length + 1}`;
+        hyperlinks.push({ cellRef, relationshipId, url: String(value).trim() });
+        return inlineStringCell(cellRef, "打开链接");
+      }
+      return inlineStringCell(cellRef, value);
+    }).join("");
+    return `<row r="${rowIndex + 1}">${cells}</row>`;
+  }).join("");
+
+  const hyperlinkXml = hyperlinks.length
+    ? `<hyperlinks>${hyperlinks.map((item) => `<hyperlink ref="${item.cellRef}" r:id="${item.relationshipId}"/>`).join("")}</hyperlinks>`
+    : "";
+  const relationshipXml = hyperlinks.map((item) =>
+    `<Relationship Id="${item.relationshipId}" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/hyperlink" Target="${escapeXml(item.url)}" TargetMode="External"/>`
+  ).join("");
+
+  const files = [
+    {
+      name: "[Content_Types].xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Types xmlns="http://schemas.openxmlformats.org/package/2006/content-types">
+<Default Extension="rels" ContentType="application/vnd.openxmlformats-package.relationships+xml"/>
+<Default Extension="xml" ContentType="application/xml"/>
+<Override PartName="/xl/workbook.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet.main+xml"/>
+<Override PartName="/xl/worksheets/sheet1.xml" ContentType="application/vnd.openxmlformats-officedocument.spreadsheetml.worksheet+xml"/>
+</Types>`
+    },
+    {
+      name: "_rels/.rels",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/officeDocument" Target="xl/workbook.xml"/>
+</Relationships>`
+    },
+    {
+      name: "xl/workbook.xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<workbook xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheets><sheet name="低价商品" sheetId="1" r:id="rId1"/></sheets>
+</workbook>`
+    },
+    {
+      name: "xl/_rels/workbook.xml.rels",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">
+<Relationship Id="rId1" Type="http://schemas.openxmlformats.org/officeDocument/2006/relationships/worksheet" Target="worksheets/sheet1.xml"/>
+</Relationships>`
+    },
+    {
+      name: "xl/worksheets/sheet1.xml",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<worksheet xmlns="http://schemas.openxmlformats.org/spreadsheetml/2006/main" xmlns:r="http://schemas.openxmlformats.org/officeDocument/2006/relationships">
+<sheetData>${sheetRows}</sheetData>${hyperlinkXml}<pageMargins left="0.7" right="0.7" top="0.75" bottom="0.75" header="0.3" footer="0.3"/>
+</worksheet>`
+    },
+    {
+      name: "xl/worksheets/_rels/sheet1.xml.rels",
+      content: `<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<Relationships xmlns="http://schemas.openxmlformats.org/package/2006/relationships">${relationshipXml}</Relationships>`
+    }
+  ];
+
+  return createStoredZip(files);
+}
+
+function inlineStringCell(cellRef, value) {
+  return `<c r="${cellRef}" t="inlineStr"><is><t xml:space="preserve">${escapeXml(value)}</t></is></c>`;
+}
+
+function xlsxColumnName(index) {
+  let name = "";
+  let number = index + 1;
+  while (number > 0) {
+    const remainder = (number - 1) % 26;
+    name = String.fromCharCode(65 + remainder) + name;
+    number = Math.floor((number - 1) / 26);
+  }
+  return name;
+}
+
+function createStoredZip(files) {
+  const localParts = [];
+  const centralParts = [];
+  let offset = 0;
+
+  for (const file of files) {
+    const nameBytes = new TextEncoder().encode(file.name);
+    const dataBytes = new TextEncoder().encode(file.content);
+    const crc = crc32(dataBytes);
+    const localHeader = new Uint8Array(30 + nameBytes.length);
+    const localView = new DataView(localHeader.buffer);
+    localView.setUint32(0, 0x04034b50, true);
+    localView.setUint16(4, 20, true);
+    localView.setUint16(6, 0, true);
+    localView.setUint16(8, 0, true);
+    localView.setUint16(10, 0, true);
+    localView.setUint16(12, 0, true);
+    localView.setUint32(14, crc, true);
+    localView.setUint32(18, dataBytes.length, true);
+    localView.setUint32(22, dataBytes.length, true);
+    localView.setUint16(26, nameBytes.length, true);
+    localView.setUint16(28, 0, true);
+    localHeader.set(nameBytes, 30);
+    localParts.push(localHeader, dataBytes);
+
+    const centralHeader = new Uint8Array(46 + nameBytes.length);
+    const centralView = new DataView(centralHeader.buffer);
+    centralView.setUint32(0, 0x02014b50, true);
+    centralView.setUint16(4, 20, true);
+    centralView.setUint16(6, 20, true);
+    centralView.setUint16(8, 0, true);
+    centralView.setUint16(10, 0, true);
+    centralView.setUint16(12, 0, true);
+    centralView.setUint16(14, 0, true);
+    centralView.setUint32(16, crc, true);
+    centralView.setUint32(20, dataBytes.length, true);
+    centralView.setUint32(24, dataBytes.length, true);
+    centralView.setUint16(28, nameBytes.length, true);
+    centralView.setUint16(30, 0, true);
+    centralView.setUint16(32, 0, true);
+    centralView.setUint16(34, 0, true);
+    centralView.setUint16(36, 0, true);
+    centralView.setUint32(38, 0, true);
+    centralView.setUint32(42, offset, true);
+    centralHeader.set(nameBytes, 46);
+    centralParts.push(centralHeader);
+
+    offset += localHeader.length + dataBytes.length;
+  }
+
+  const centralDirectorySize = centralParts.reduce((sum, part) => sum + part.length, 0);
+  const end = new Uint8Array(22);
+  const endView = new DataView(end.buffer);
+  endView.setUint32(0, 0x06054b50, true);
+  endView.setUint16(4, 0, true);
+  endView.setUint16(6, 0, true);
+  endView.setUint16(8, files.length, true);
+  endView.setUint16(10, files.length, true);
+  endView.setUint32(12, centralDirectorySize, true);
+  endView.setUint32(16, offset, true);
+  endView.setUint16(20, 0, true);
+
+  return concatBytes([...localParts, ...centralParts, end]);
+}
+
+function concatBytes(parts) {
+  const totalLength = parts.reduce((sum, part) => sum + part.length, 0);
+  const result = new Uint8Array(totalLength);
+  let offset = 0;
+  for (const part of parts) {
+    result.set(part, offset);
+    offset += part.length;
+  }
+  return result;
+}
+
+const CRC32_TABLE = (() => {
+  const table = new Uint32Array(256);
+  for (let index = 0; index < 256; index += 1) {
+    let value = index;
+    for (let bit = 0; bit < 8; bit += 1) {
+      value = value & 1 ? 0xedb88320 ^ (value >>> 1) : value >>> 1;
+    }
+    table[index] = value >>> 0;
+  }
+  return table;
+})();
+
+function crc32(bytes) {
+  let value = 0xffffffff;
+  for (const byte of bytes) {
+    value = CRC32_TABLE[(value ^ byte) & 0xff] ^ (value >>> 8);
+  }
+  return (value ^ 0xffffffff) >>> 0;
+}
+
+function escapeXml(value) {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/\"/g, "&quot;")
+    .replace(/'/g, "&apos;");
 }
 
 function escapeHtml(value) {
