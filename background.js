@@ -1,4 +1,4 @@
-importScripts("platforms/jd.js");
+importScripts("platforms/jd.js", "platforms/tmall.js");
 
 const ALARM_NAME = "jd-price-monitor";
 const DEFAULT_INTERVAL_MINUTES = 30;
@@ -168,12 +168,18 @@ async function searchProducts(keyword, platform = "jd") {
         pageStats
       });
       if (page > 1) {
-        const pageResponse = await sendTabMessage(tabId, {
-          type: "GO_TO_SEARCH_PAGE",
-          page
-        });
-        if (!pageResponse?.ok) {
-          throw new Error(pageResponse?.error || `未能切换到${adapter.name}第 ${page} 页`);
+        if (adapter.pageNavigation === "url") {
+          await chrome.tabs.update(tabId, { url: adapter.buildSearchUrl(keyword, page) });
+          await waitForTabComplete(tabId);
+        } else {
+          const pageResponse = await sendTabMessage(tabId, {
+            type: "GO_TO_SEARCH_PAGE",
+            platform: adapter.id,
+            page
+          });
+          if (!pageResponse?.ok) {
+            throw new Error(pageResponse?.error || `未能切换到${adapter.name}第 ${page} 页`);
+          }
         }
       } else {
         await waitForTabComplete(tabId);
@@ -205,6 +211,7 @@ async function searchProducts(keyword, platform = "jd") {
       pageStats.push({ page, received: pageProducts.length, newProducts });
       await setSearchStatus({
         state: "searching",
+        platform: adapter.id,
         keyword,
         page,
         totalPages: MAX_SEARCH_PAGES,
