@@ -4,7 +4,7 @@ const platformInput = document.querySelector("#platform");
 const monitorsEl = document.querySelector("#monitors");
 const messageEl = document.querySelector("#message");
 const SEARCH_TIMEOUT_MS = 90000;
-const PLATFORM_LABELS = { jd: "京东", tmall: "天猫", pdd: "拼多多" };
+const PLATFORM_LABELS = { jd: "京东", taobao: "淘宝", tmall: "天猫" };
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
@@ -153,9 +153,6 @@ function showMessage(message) {
 function formatSearchError(error, platform) {
   const message = String(error?.message || error || "未知错误");
   if (/message channel closed|asynchronous response|receiving end does not exist/i.test(message)) {
-    if (platform === "pdd") {
-      return "拼多多页面未返回结果，通常是被重定向到登录/验证页；请先登录拼多多，再刷新扩展后重试";
-    }
     return "商品页面未返回结果，请刷新扩展后重试";
   }
   return message;
