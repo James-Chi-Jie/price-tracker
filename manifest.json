@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "多平台低价预警",
-  "version": "0.12.6",
+  "version": "0.13.0",
   "description": "在本地浏览器中定时搜索多个电商平台商品，并在价格低于阈值时提醒。",
   "icons": {
     "128": "icon128.png"
@@ -15,9 +15,7 @@
   "host_permissions": [
     "https://*.jd.com/*",
     "https://*.tmall.com/*",
-    "https://*.taobao.com/*",
-    "https://*.pinduoduo.com/*",
-    "https://*.yangkeduo.com/*"
+    "https://*.taobao.com/*"
   ],
   "background": {
     "service_worker": "background.js"
@@ -31,9 +29,7 @@
       "matches": [
         "https://*.jd.com/*",
         "https://*.tmall.com/*",
-        "https://*.taobao.com/*",
-        "https://*.pinduoduo.com/*",
-        "https://*.yangkeduo.com/*"
+        "https://*.taobao.com/*"
       ],
       "js": ["content.js"],
       "run_at": "document_idle"
