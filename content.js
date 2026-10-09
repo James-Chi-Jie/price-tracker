@@ -17,6 +17,8 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     ? readJdSearchResults(Number(message.expectedPage) || null)
     : platform === "tmall"
       ? readTmallSearchResults(Number(message.expectedPage) || null)
+      : platform === "pdd"
+        ? readPddSearchResults(Number(message.expectedPage) || null)
       : Promise.reject(new Error(`${platform}页面采集适配器尚未接入`));
   readTask
     .then(sendResponse)
@@ -54,6 +56,134 @@ async function readTmallSearchResults(_expectedPage = null) {
   }
 
   return { products };
+}
+
+async function readPddSearchResults(_expectedPage = null) {
+  await waitForPddSearchResults();
+  const products = [];
+  const seen = new Set();
+
+  for (const item of findPddSearchItems()) {
+    const product = parsePddSearchItem(item);
+    if (!product || seen.has(product.id)) continue;
+    seen.add(product.id);
+    products.push(product);
+  }
+
+  return { products };
+}
+
+function findPddSearchItems() {
+  const selectors = [
+    "[data-goods-id]",
+    "[data-goodsid]",
+    "[class*='goods-card']",
+    "[class*='goodsCard']",
+    "[class*='search-item']",
+    "[class*='searchItem']"
+  ];
+  const items = [];
+  const seen = new Set();
+  for (const selector of selectors) {
+    for (const item of document.querySelectorAll(selector)) {
+      const hasId = item.getAttribute("data-goods-id")
+        || item.getAttribute("data-goodsid")
+        || item.getAttribute("data-id");
+      if (seen.has(item) || (!findPddProductLink(item) && !hasId)) continue;
+      seen.add(item);
+      items.push(item);
+    }
+  }
+
+  if (items.length) return items;
+  return [...document.querySelectorAll(
+    "a[href*='goods.html?goods_id='], a[href*='goods_id='], a[href*='goodsId=']"
+  )];
+}
+
+function parsePddSearchItem(item) {
+  const linkNode = findPddProductLink(item) || (item.matches?.("a") ? item : null);
+  const linkedUrl = normalizePddProductUrl(linkNode?.href || "");
+  const id = item.getAttribute?.("data-goods-id")
+    || item.getAttribute?.("data-goodsid")
+    || item.getAttribute?.("data-id")
+    || extractPddProductId(linkedUrl);
+  const url = linkedUrl || (id ? `https://mobile.yangkeduo.com/goods.html?goods_id=${id}` : "");
+  const cardText = String(item.textContent || "").replace(/\s+/g, " ").trim();
+  const titleCandidates = [
+    item.querySelector?.("[class*='title'], [class*='Title'], [class*='name'], [class*='Name']")?.textContent,
+    linkNode?.getAttribute?.("title"),
+    linkNode?.textContent,
+    cardText
+  ].map((value) => String(value || "").replace(/\s+/g, " ").trim()).filter(Boolean);
+  const title = (titleCandidates[0] || "").split(/[¥￥]/)[0].trim();
+  const price = extractPddSearchPrice(item, cardText);
+
+  if (!id || !url || !title || !Number.isFinite(price) || price <= 0) return null;
+  return {
+    id: String(id),
+    url,
+    title,
+    price,
+    attributes: extractProductAttributes(title)
+  };
+}
+
+function findPddProductLink(item) {
+  return item.querySelector?.(
+    "a[href*='goods.html?goods_id='], a[href*='goods_id='], a[href*='goodsId=']"
+  ) || null;
+}
+
+function extractPddSearchPrice(item, fallbackText = "") {
+  const values = [];
+  for (const node of item.querySelectorAll?.(
+    "[class*='price'], [class*='Price'], [data-price], [data-price-value]"
+  ) || []) {
+    const price = parsePrice(node.textContent || node.getAttribute?.("data-price") || node.getAttribute?.("data-price-value") || "");
+    if (Number.isFinite(price) && price > 0) values.push(price);
+  }
+  if (values.length) return Math.min(...values);
+  const currencyMatch = fallbackText.replace(/,/g, "").match(/[¥￥]\s*(\d+(?:\.\d{1,2})?)/);
+  return currencyMatch ? Number(currencyMatch[1]) : parsePrice(fallbackText);
+}
+
+function normalizePddProductUrl(value) {
+  try {
+    const url = new URL(value, location.href);
+    if (!/(?:^|\.)pinduoduo\.com$|(?:^|\.)yangkeduo\.com$/i.test(url.hostname)) return "";
+    url.protocol = "https:";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+function extractPddProductId(url) {
+  try {
+    const parsed = new URL(url, location.href);
+    return parsed.searchParams.get("goods_id")
+      || parsed.searchParams.get("goodsId")
+      || parsed.searchParams.get("id")
+      || "";
+  } catch {
+    return "";
+  }
+}
+
+async function waitForPddSearchResults() {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    if (document.querySelector(
+      "[data-goods-id], [data-goodsid], [class*='goods-card'], [class*='goodsCard'], a[href*='goods_id='], a[href*='goodsId=']"
+    )) return;
+    const bodyText = String(document.body?.innerText || "");
+    if (/(验证码|安全验证|滑块验证|访问受限|请登录|robot|captcha|异常访问)/i.test(bodyText)) {
+      throw new Error("拼多多搜索页需要登录或验证，暂时无法读取商品");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error("拼多多搜索结果加载超时，可能触发了平台验证");
 }
 
 function findTmallSearchItems() {
