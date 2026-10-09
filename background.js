@@ -28,7 +28,13 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "START_PRODUCT_SELECTION") {
     startProductSelection(message.keyword, message.platform || "jd")
-      .then((result) => sendResponse({ ok: true, result }))
+      .then((result) => {
+        // 先回复弹窗，再打开新标签页；否则激活新标签页会关闭弹窗，
+        // Chrome 会把尚未送达的异步响应报成“消息通道已关闭”。
+        sendResponse({ ok: true, result });
+        chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true })
+          .catch((error) => console.error("无法打开商品选择页", error));
+      })
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }
@@ -115,7 +121,6 @@ async function startProductSelection(keyword, platform = "jd") {
         createdAt: Date.now()
       }
     });
-    await chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true });
     await setSearchStatus({
       state: "done",
       platform: adapter.id,
