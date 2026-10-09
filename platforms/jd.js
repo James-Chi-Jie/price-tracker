@@ -1,4 +1,4 @@
-// 京东适配器。后续可以增加 platforms/taobao.js、platforms/pdd.js 等适配器。
+// 京东适配器。后续可以继续增加其他平台适配器。
 self.PriceAdapters = self.PriceAdapters || {};
 self.PriceAdapters.jd = {
   id: "jd",
