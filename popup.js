@@ -31,7 +31,7 @@ form.addEventListener("submit", async (event) => {
       showMessage(`搜索失败：${result?.error || "未知错误"}`);
     }
   } catch (error) {
-    showMessage(`搜索失败：${error.message}`);
+    showMessage(`搜索失败：${formatSearchError(error, platformInput.value)}`);
   }
 });
 
@@ -148,6 +148,17 @@ monitorsEl.addEventListener("click", async (event) => {
 
 function showMessage(message) {
   messageEl.textContent = message;
+}
+
+function formatSearchError(error, platform) {
+  const message = String(error?.message || error || "未知错误");
+  if (/message channel closed|asynchronous response|receiving end does not exist/i.test(message)) {
+    if (platform === "pdd") {
+      return "拼多多页面未返回结果，通常是被重定向到登录/验证页；请先登录拼多多，再刷新扩展后重试";
+    }
+    return "商品页面未返回结果，请刷新扩展后重试";
+  }
+  return message;
 }
 
 function sendMessageWithTimeout(message, timeoutMs) {
