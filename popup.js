@@ -212,7 +212,7 @@ async function exportMonitor(id) {
   const basisLabels = { total: "按商品总价", perBox: "按盒", perUnit: "按单位" };
   const headers = ["平台", "SKU", "商品标题", "当前价格"];
   if (priceBasis !== "total") headers.push("比较价格");
-  headers.push("目标价格", "价格计算方式", "剂型", "规格", "单包装数量", "盒数", "链接（点击打开）");
+  headers.push("目标价格", "价格计算方式", "剂型", "规格", "单包装数量", "盒数", "链接");
 
   const rows = [
     headers,
@@ -260,9 +260,9 @@ function csvCell(value) {
 
 function csvLink(value) {
   const url = String(value ?? "").trim();
-  return /^https:\/\//i.test(url)
-    ? `=HYPERLINK("${url.replace(/"/g, '""')}","打开链接")`
-    : url;
+  // CSV 在不同表格软件中的公式解析不一致，直接写出完整 URL，
+  // Excel/WPS 通常会自动识别为可点击链接，也不会因地区公式分隔符而失效。
+  return /^https:\/\//i.test(url) ? url : "";
 }
 
 function escapeHtml(value) {
