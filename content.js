@@ -174,12 +174,16 @@ function extractPddProductId(url) {
 async function waitForPddSearchResults() {
   const deadline = Date.now() + 15000;
   while (Date.now() < deadline) {
+    const pageLocation = `${location.pathname} ${location.search}`;
+    if (/(?:login|passport|refer_page_name=login)/i.test(pageLocation)) {
+      throw new Error("拼多多已将搜索页跳转到登录页，请先在当前 Chrome 中登录拼多多后重试");
+    }
     if (document.querySelector(
       "[data-goods-id], [data-goodsid], [class*='goods-card'], [class*='goodsCard'], a[href*='goods_id='], a[href*='goodsId=']"
     )) return;
     const bodyText = String(document.body?.innerText || "");
-    if (/(验证码|安全验证|滑块验证|访问受限|请登录|robot|captcha|异常访问)/i.test(bodyText)) {
-      throw new Error("拼多多搜索页需要登录或验证，暂时无法读取商品");
+    if (/(验证码|安全验证|滑块验证|访问受限|请登录|登录后|robot|captcha|异常访问)/i.test(bodyText)) {
+      throw new Error("拼多多搜索页需要登录或验证，请先完成登录/验证后重试");
     }
     await new Promise((resolve) => setTimeout(resolve, 250));
   }
