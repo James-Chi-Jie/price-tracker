@@ -75,12 +75,20 @@ async function readPddSearchResults(_expectedPage = null) {
 
 function findPddSearchItems() {
   const selectors = [
+    "[class*='goods-list'] [class*='goods-item']",
+    "[class*='goodsList'] [class*='goodsItem']",
+    "[class*='search-result'] [class*='item']",
+    "[class*='searchResult'] [class*='item']",
+    "[class*='product-list'] [class*='product-item']",
+    "[class*='productList'] [class*='productItem']",
     "[data-goods-id]",
     "[data-goodsid]",
     "[class*='goods-card']",
     "[class*='goodsCard']",
     "[class*='search-item']",
-    "[class*='searchItem']"
+    "[class*='searchItem']",
+    "a[href*='goods_id=']",
+    "a[href*='goodsId=']"
   ];
   const items = [];
   const seen = new Set();
@@ -97,7 +105,7 @@ function findPddSearchItems() {
 
   if (items.length) return items;
   return [...document.querySelectorAll(
-    "a[href*='goods.html?goods_id='], a[href*='goods_id='], a[href*='goodsId=']"
+    "a[href*='goods.html'], a[href*='goods2.html'], a[href*='goods_id='], a[href*='goodsId=']"
   )];
 }
 
@@ -131,14 +139,14 @@ function parsePddSearchItem(item) {
 
 function findPddProductLink(item) {
   return item.querySelector?.(
-    "a[href*='goods.html?goods_id='], a[href*='goods_id='], a[href*='goodsId=']"
+    "a[href*='goods.html'], a[href*='goods2.html'], a[href*='goods_id='], a[href*='goodsId=']"
   ) || null;
 }
 
 function extractPddSearchPrice(item, fallbackText = "") {
   const values = [];
   for (const node of item.querySelectorAll?.(
-    "[class*='price'], [class*='Price'], [data-price], [data-price-value]"
+    "[class*='price'], [class*='Price'], [class*='amount'], [class*='Amount'], [data-price], [data-price-value]"
   ) || []) {
     const price = parsePrice(node.textContent || node.getAttribute?.("data-price") || node.getAttribute?.("data-price-value") || "");
     if (Number.isFinite(price) && price > 0) values.push(price);
@@ -172,14 +180,14 @@ function extractPddProductId(url) {
 }
 
 async function waitForPddSearchResults() {
-  const deadline = Date.now() + 15000;
+  const deadline = Date.now() + 30000;
   while (Date.now() < deadline) {
     const pageLocation = `${location.pathname} ${location.search}`;
     if (/(?:login|passport|refer_page_name=login)/i.test(pageLocation)) {
       throw new Error("拼多多已将搜索页跳转到登录页，请先在当前 Chrome 中登录拼多多后重试");
     }
     if (document.querySelector(
-      "[data-goods-id], [data-goodsid], [class*='goods-card'], [class*='goodsCard'], a[href*='goods_id='], a[href*='goodsId=']"
+      "[class*='goods-list'] [class*='goods-item'], [class*='goodsList'] [class*='goodsItem'], [class*='search-result'] [class*='item'], [class*='searchResult'] [class*='item'], [class*='product-list'] [class*='product-item'], [class*='productList'] [class*='productItem'], [data-goods-id], [data-goodsid], [class*='goods-card'], [class*='goodsCard'], a[href*='goods.html'], a[href*='goods2.html'], a[href*='goods_id='], a[href*='goodsId=']"
     )) return;
     const bodyText = String(document.body?.innerText || "");
     if (/(验证码|安全验证|滑块验证|访问受限|请登录|登录后|robot|captcha|异常访问)/i.test(bodyText)) {
