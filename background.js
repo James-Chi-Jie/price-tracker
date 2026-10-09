@@ -5,7 +5,7 @@ const DEFAULT_INTERVAL_MINUTES = 30;
 const TAB_TIMEOUT_MS = 25000;
 const MAX_SEARCH_PAGES = 3;
 const SEARCH_PAGE_DELAY_MS = 700;
-const TAB_MESSAGE_TIMEOUT_MS = 20000;
+const TAB_MESSAGE_TIMEOUT_MS = 35000;
 
 chrome.runtime.onInstalled.addListener(() => ensureAlarm());
 chrome.runtime.onStartup.addListener(() => ensureAlarm());
