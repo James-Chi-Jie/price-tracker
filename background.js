@@ -29,11 +29,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "START_PRODUCT_SELECTION") {
     startProductSelection(message.keyword, message.platform || "jd")
       .then((result) => {
-        // 先回复弹窗，再打开新标签页；否则激活新标签页会关闭弹窗，
-        // Chrome 会把尚未送达的异步响应报成“消息通道已关闭”。
-        sendResponse({ ok: true, result });
-        chrome.tabs.create({ url: chrome.runtime.getURL("select.html"), active: true })
-          .catch((error) => console.error("无法打开商品选择页", error));
+        // 只返回结果和目标地址；商品选择页由 popup 在收到响应后打开，
+        // 避免后台激活新标签页时提前关闭 popup 的消息通道。
+        sendResponse({
+          ok: true,
+          result,
+          selectionUrl: chrome.runtime.getURL("select.html")
+        });
       })
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
