@@ -1,6 +1,10 @@
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "GO_TO_SEARCH_PAGE") {
-    goToSearchPage(Number(message.page))
+    const platform = message.platform || "jd";
+    const pageTask = platform === "jd"
+      ? goToSearchPage(Number(message.page))
+      : Promise.reject(new Error(`${platform}分页由后台地址切换`));
+    pageTask
       .then(sendResponse)
       .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
@@ -8,12 +12,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
 
   if (message?.type !== "READ_SEARCH_RESULTS") return;
 
-  if (message.platform && message.platform !== "jd") {
-    sendResponse({ error: `${message.platform}页面采集适配器尚未接入` });
-    return true;
-  }
-
-  readJdSearchResults(Number(message.expectedPage) || null)
+  const platform = message.platform || "jd";
+  const readTask = platform === "jd"
+    ? readJdSearchResults(Number(message.expectedPage) || null)
+    : platform === "tmall"
+      ? readTmallSearchResults(Number(message.expectedPage) || null)
+      : Promise.reject(new Error(`${platform}页面采集适配器尚未接入`));
+  readTask
     .then(sendResponse)
     .catch((error) => sendResponse({ error: error.message }));
 
@@ -34,6 +39,129 @@ async function readJdSearchResults(expectedPage = null) {
   }
 
   return { products };
+}
+
+async function readTmallSearchResults(_expectedPage = null) {
+  await waitForTmallSearchResults();
+  const products = [];
+  const seen = new Set();
+
+  for (const item of findTmallSearchItems()) {
+    const product = parseTmallSearchItem(item);
+    if (!product || seen.has(product.id)) continue;
+    seen.add(product.id);
+    products.push(product);
+  }
+
+  return { products };
+}
+
+function findTmallSearchItems() {
+  const selectors = [
+    "[data-item-id]",
+    "[data-id][class*='item']",
+    "[class*='doubleCardWrapper']",
+    "[class*='itemWrapper']",
+    "[class*='CardWrapper']",
+    "li[class*='item']"
+  ];
+  const items = [];
+  const seen = new Set();
+  for (const selector of selectors) {
+    for (const item of document.querySelectorAll(selector)) {
+      if (seen.has(item)) continue;
+      const link = findTmallProductLink(item);
+      if (!link) continue;
+      seen.add(item);
+      items.push(item);
+    }
+  }
+
+  if (items.length) return items;
+  return [...document.querySelectorAll(
+    "a[href*='item.taobao.com/item.htm'], a[href*='detail.tmall.com/item.htm'], a[href*='item.tmall.com/item.htm']"
+  )];
+}
+
+function parseTmallSearchItem(item) {
+  const linkNode = findTmallProductLink(item) || (item.matches?.("a") ? item : null);
+  const linkedUrl = normalizeTmallProductUrl(linkNode?.href || "");
+  const id = item.getAttribute?.("data-item-id")
+    || item.getAttribute?.("data-id")
+    || extractTmallProductId(linkedUrl);
+  const url = linkedUrl || (id ? `https://detail.tmall.com/item.htm?id=${id}` : "");
+  const cardText = String(item.textContent || "").replace(/\s+/g, " ").trim();
+  const titleCandidates = [
+    item.querySelector?.("[class*='title'], [class*='Title'], [title]")?.textContent,
+    linkNode?.getAttribute?.("title"),
+    linkNode?.textContent,
+    cardText
+  ].map((value) => String(value || "").replace(/\s+/g, " ").trim()).filter(Boolean);
+  const title = (titleCandidates[0] || "").split(/[¥￥]/)[0].trim();
+  const price = extractTmallSearchPrice(item, cardText);
+
+  if (!id || !url || !title || !Number.isFinite(price) || price <= 0) return null;
+  return {
+    id: String(id),
+    url,
+    title,
+    price,
+    attributes: extractProductAttributes(title)
+  };
+}
+
+function findTmallProductLink(item) {
+  return item.querySelector?.(
+    "a[href*='item.taobao.com/item.htm'], a[href*='detail.tmall.com/item.htm'], a[href*='item.tmall.com/item.htm']"
+  ) || null;
+}
+
+function extractTmallSearchPrice(item, fallbackText = "") {
+  const values = [];
+  for (const node of item.querySelectorAll?.(
+    "[class*='priceInt'], [class*='price'], [class*='Price'], [data-price]"
+  ) || []) {
+    const price = parsePrice(node.textContent || node.getAttribute?.("data-price") || "");
+    if (Number.isFinite(price) && price > 0) values.push(price);
+  }
+  if (values.length) return Math.min(...values);
+  const currencyMatch = fallbackText.replace(/,/g, "").match(/[¥￥]\s*(\d+(?:\.\d{1,2})?)/);
+  return currencyMatch ? Number(currencyMatch[1]) : parsePrice(fallbackText);
+}
+
+function normalizeTmallProductUrl(value) {
+  try {
+    const url = new URL(value, location.href);
+    if (!/(?:^|\.)taobao\.com$|(?:^|\.)tmall\.com$/i.test(url.hostname)) return "";
+    url.protocol = "https:";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+function extractTmallProductId(url) {
+  try {
+    const parsed = new URL(url, location.href);
+    return parsed.searchParams.get("id") || "";
+  } catch {
+    return "";
+  }
+}
+
+async function waitForTmallSearchResults() {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    if (document.querySelector(
+      "[data-item-id], [class*='doubleCardWrapper'], [class*='itemWrapper'], a[href*='item.taobao.com/item.htm'], a[href*='detail.tmall.com/item.htm']"
+    )) return;
+    const bodyText = String(document.body?.innerText || "");
+    if (/(验证码|安全验证|滑块验证|访问受限|请登录|robot|captcha)/i.test(bodyText)) {
+      throw new Error("天猫搜索页需要登录或验证，暂时无法读取商品");
+    }
+    await new Promise((resolve) => setTimeout(resolve, 250));
+  }
+  throw new Error("天猫搜索结果加载超时，可能触发了平台验证");
 }
 
 async function goToSearchPage(page) {
