@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "多平台低价预警",
-  "version": "0.11.0",
+  "version": "0.12.0",
   "description": "在本地浏览器中定时搜索多个电商平台商品，并在价格低于阈值时提醒。",
   "icons": {
     "128": "icon128.png"
