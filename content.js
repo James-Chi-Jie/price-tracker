@@ -1,1 +1,244 @@
-Y2hyb21lLnJ1bnRpbWUub25NZXNzYWdlLmFkZExpc3RlbmVyKChtZXNzYWdlLCBfc2VuZGVyLCBzZW5kUmVzcG9uc2UpID0+IHsKICBpZiAobWVzc2FnZT8udHlwZSA9PT0gIkdPX1RPX1NFQVJDSF9QQUdFIikgewogICAgZ29Ub1NlYXJjaFBhZ2UoTnVtYmVyKG1lc3NhZ2UucGFnZSkpCiAgICAgIC50aGVuKHNlbmRSZXNwb25zZSkKICAgICAgLmNhdGNoKChlcnJvcikgPT4gc2VuZFJlc3BvbnNlKHsgb2s6IGZhbHNlLCBlcnJvcjogZXJyb3IubWVzc2FnZSB9KSk7CiAgICByZXR1cm4gdHJ1ZTsKICB9CgogIGlmIChtZXNzYWdlPy50eXBlICE9PSAiUkVBRF9TRUFSQ0hfUkVTVUxUUyIpIHJldHVybjsKCiAgcmVhZEpkU2VhcmNoUmVzdWx0cyhOdW1iZXIobWVzc2FnZS5leHBlY3RlZFBhZ2UpIHx8IG51bGwpCiAgICAudGhlbihzZW5kUmVzcG9uc2UpCiAgICAuY2F0Y2goKGVycm9yKSA9PiBzZW5kUmVzcG9uc2UoeyBlcnJvcjogZXJyb3IubWVzc2FnZSB9KSk7CgogIHJldHVybiB0cnVlOwp9KTsKCmFzeW5jIGZ1bmN0aW9uIHJlYWRKZFNlYXJjaFJlc3VsdHMoZXhwZWN0ZWRQYWdlID0gbnVsbCkgewogIGF3YWl0IHdhaXRGb3JTZWFyY2hSZXN1bHRzKGV4cGVjdGVkUGFnZSk7CiAgY29uc3QgaXRlbXMgPSBbLi4uZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgiW2RhdGEtc2t1XSwgbGkuZ2wtaXRlbSwgLmdsLWl0ZW0iKV07CiAgY29uc3Qgc2VlbiA9IG5ldyBTZXQoKTsKICBjb25zdCBwcm9kdWN0cyA9IFtdOwoKICBmb3IgKGNvbnN0IGl0ZW0gb2YgaXRlbXMpIHsKICAgIGNvbnN0IHByb2R1Y3QgPSBwYXJzZVNlYXJjaEl0ZW0oaXRlbSk7CiAgICBpZiAoIXByb2R1Y3QgfHwgc2Vlbi5oYXMocHJvZHVjdC5pZCkpIGNvbnRpbnVlOwogICAgc2Vlbi5hZGQocHJvZHVjdC5pZCk7CiAgICBwcm9kdWN0cy5wdXNoKHByb2R1Y3QpOwogIH0KCiAgcmV0dXJuIHsgcHJvZHVjdHMgfTsKfQoKYXN5bmMgZnVuY3Rpb24gZ29Ub1NlYXJjaFBhZ2UocGFnZSkgewogIGlmICghTnVtYmVyLmlzSW50ZWdlcihwYWdlKSB8fCBwYWdlIDwgMSkgdGhyb3cgbmV3IEVycm9yKCLml6DmlYjnmoTkuqzkuJzpobXnoIEiKTsKICBpZiAoZ2V0Q3VycmVudFNlYXJjaFBhZ2UoKSA9PT0gcGFnZSkgcmV0dXJuIHsgb2s6IHRydWUsIHBhZ2UgfTsKCiAgY29uc3QgaW5wdXQgPSBhd2FpdCB3YWl0Rm9yUGFnaW5hdGlvbklucHV0KCk7CiAgaWYgKCFpbnB1dCkgdGhyb3cgbmV3IEVycm9yKCLmnKrmib7liLDkuqzkuJzliIbpobXovpPlhaXmoYYiKTsKCiAgY29uc3QgYmVmb3JlSWRzID0gZ2V0U2VhcmNoSXRlbUlkcygpOwogIGlucHV0LmZvY3VzKCk7CiAgaW5wdXQudmFsdWUgPSBTdHJpbmcocGFnZSk7CiAgaW5wdXQuZGlzcGF0Y2hFdmVudChuZXcgRXZlbnQoImlucHV0IiwgeyBidWJibGVzOiB0cnVlIH0pKTsKICBpbnB1dC5kaXNwYXRjaEV2ZW50KG5ldyBFdmVudCgiY2hhbmdlIiwgeyBidWJibGVzOiB0cnVlIH0pKTsKCiAgY29uc3QgY29udGFpbmVyID0gaW5wdXQuY2xvc2VzdCgiLnAtc2tpcCIpIHx8IGlucHV0LnBhcmVudEVsZW1lbnQ7CiAgY29uc3QgY29uZmlybUJ1dHRvbiA9IGNvbnRhaW5lcj8ucXVlcnlTZWxlY3RvcigiLmJ0bi1kZWZhdWx0LCAuYnRuLCBidXR0b24iKTsKICBpZiAoY29uZmlybUJ1dHRvbikgewogICAgY29uZmlybUJ1dHRvbi5jbGljaygpOwogIH0gZWxzZSB7CiAgICBpbnB1dC5kaXNwYXRjaEV2ZW50KG5ldyBLZXlib2FyZEV2ZW50KCJrZXlkb3duIiwgewogICAgICBrZXk6ICJFbnRlciIsCiAgICAgIGNvZGU6ICJFbnRlciIsCiAgICAgIGtleUNvZGU6IDEzLAogICAgICB3aGljaDogMTMsCiAgICAgIGJ1YmJsZXM6IHRydWUKICAgIH0pKTsKICB9CgogIGNvbnN0IGRlYWRsaW5lID0gRGF0ZS5ub3coKSArIDE1MDAwOwogIHdoaWxlIChEYXRlLm5vdygpIDwgZGVhZGxpbmUpIHsKICAgIGNvbnN0IGN1cnJlbnRQYWdlID0gZ2V0Q3VycmVudFNlYXJjaFBhZ2UoKTsKICAgIGNvbnN0IGN1cnJlbnRJZHMgPSBnZXRTZWFyY2hJdGVtSWRzKCk7CiAgICBpZiAoY3VycmVudFBhZ2UgPT09IHBhZ2UgJiYgY3VycmVudElkcy5sZW5ndGgpIHJldHVybiB7IG9rOiB0cnVlLCBwYWdlIH07CiAgICBpZiAoY3VycmVudElkcy5sZW5ndGggJiYgY3VycmVudElkcy5qb2luKCIsIikgIT09IGJlZm9yZUlkcy5qb2luKCIsIikpIHsKICAgICAgcmV0dXJuIHsgb2s6IHRydWUsIHBhZ2U6IGN1cnJlbnRQYWdlIHx8IHBhZ2UgfTsKICAgIH0KICAgIGF3YWl0IG5ldyBQcm9taXNlKChyZXNvbHZlKSA9PiBzZXRUaW1lb3V0KHJlc29sdmUsIDE1MCkpOwogIH0KCiAgdGhyb3cgbmV3IEVycm9yKGDkuqzkuJznrKwgJHtwYWdlfSDpobXliqDovb3otoXml7ZgKTsKfQoKYXN5bmMgZnVuY3Rpb24gd2FpdEZvclBhZ2luYXRpb25JbnB1dCgpIHsKICBjb25zdCBkZWFkbGluZSA9IERhdGUubm93KCkgKyAxMDAwMDsKICB3aGlsZSAoRGF0ZS5ub3coKSA8IGRlYWRsaW5lKSB7CiAgICBjb25zdCBpbnB1dCA9IGZpbmRQYWdpbmF0aW9uSW5wdXQoKTsKICAgIGlmIChpbnB1dCkgcmV0dXJuIGlucHV0OwogICAgYXdhaXQgbmV3IFByb21pc2UoKHJlc29sdmUpID0+IHNldFRpbWVvdXQocmVzb2x2ZSwgMjAwKSk7CiAgfQogIHJldHVybiBudWxsOwp9CgpmdW5jdGlvbiBmaW5kUGFnaW5hdGlvbklucHV0KCkgewogIGNvbnN0IGNhbmRpZGF0ZXMgPSBbLi4uZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgKICAgICIjSl9ib3R0b21QYWdlIGlucHV0LCAjSl90b3BQYWdlIGlucHV0LCAucC1za2lwIGlucHV0LCBpbnB1dC5pbnB1dC10eHQsIGlucHV0IgogICldOwogIHJldHVybiBjYW5kaWRhdGVzLmZpbmQoKGlucHV0KSA9PiB7CiAgICBjb25zdCB0ZXh0ID0gWwogICAgICBpbnB1dC5jbGFzc05hbWUsCiAgICAgIGlucHV0LnBhcmVudEVsZW1lbnQ/LnRleHRDb250ZW50LAogICAgICBpbnB1dC5wYXJlbnRFbGVtZW50Py5wYXJlbnRFbGVtZW50Py50ZXh0Q29udGVudAogICAgXS5qb2luKCIgIik7CiAgICByZXR1cm4gL+WIsOesrHzpobUvLnRlc3QodGV4dCkgfHwgL2lucHV0LXR4dHxwLXNraXAvLnRlc3QoU3RyaW5nKGlucHV0LmNsYXNzTmFtZSkpOwogIH0pIHx8IG51bGw7Cn0KCmZ1bmN0aW9uIGdldEN1cnJlbnRTZWFyY2hQYWdlKCkgewogIGNvbnN0IGN1cnJlbnQgPSBkb2N1bWVudC5xdWVyeVNlbGVjdG9yKAogICAgIiNKX2JvdHRvbVBhZ2UgLnAtbnVtIC5jdXJyLCAjSl90b3BQYWdlIC5wLW51bSAuY3VyciwgLnAtbnVtIC5jdXJyLCAucC1udW0gYS5jdXJyLCAucC1udW0gYi5jdXJyIgogICk7CiAgY29uc3QgcGFnZSA9IE51bWJlcihjdXJyZW50Py50ZXh0Q29udGVudD8udHJpbSgpKTsKICByZXR1cm4gTnVtYmVyLmlzSW50ZWdlcihwYWdlKSAmJiBwYWdlID4gMCA/IHBhZ2UgOiBudWxsOwp9CgpmdW5jdGlvbiBnZXRTZWFyY2hJdGVtSWRzKCkgewogIHJldHVybiBbLi4uZG9jdW1lbnQucXVlcnlTZWxlY3RvckFsbCgiW2RhdGEtc2t1XSwgbGkuZ2wtaXRlbSwgLmdsLWl0ZW0iKV0KICAgIC5tYXAoKGl0ZW0pID0+IGl0ZW0uZ2V0QXR0cmlidXRlKCJkYXRhLXNrdSIpIHx8ICIiKQogICAgLmZpbHRlcihCb29sZWFuKTsKfQoKYXN5bmMgZnVuY3Rpb24gd2FpdEZvclNlYXJjaFJlc3VsdHMoZXhwZWN0ZWRQYWdlID0gbnVsbCkgewogIGNvbnN0IGRlYWRsaW5lID0gRGF0ZS5ub3coKSArIDEwMDAwOwogIGNvbnN0IGZhbGxiYWNrRGVhZGxpbmUgPSBEYXRlLm5vdygpICsgMjUwMDsKICB3aGlsZSAoRGF0ZS5ub3coKSA8IGRlYWRsaW5lKSB7CiAgICBjb25zdCBoYXNJdGVtcyA9IGRvY3VtZW50LnF1ZXJ5U2VsZWN0b3IoImxpLmdsLWl0ZW0sIC5nbC1pdGVtLCBbZGF0YS1za3VdIik7CiAgICBpZiAoaGFzSXRlbXMgJiYgKCFleHBlY3RlZFBhZ2UgfHwgZ2V0Q3VycmVudFNlYXJjaFBhZ2UoKSA9PT0gZXhwZWN0ZWRQYWdlKSkgewogICAgICByZXR1cm47CiAgICB9CiAgICBpZiAoaGFzSXRlbXMgJiYgRGF0ZS5ub3coKSA+PSBmYWxsYmFja0RlYWRsaW5lKSByZXR1cm47CiAgICBhd2FpdCBuZXcgUHJvbWlzZSgocmVzb2x2ZSkgPT4gc2V0VGltZW91dChyZXNvbHZlLCAyMDApKTsKICB9CiAgdGhyb3cgbmV3IEVycm9yKCLkuqzkuJzmkJzntKLnu5PmnpzliqDovb3otoXml7YiKTsKfQoKZnVuY3Rpb24gcGFyc2VTZWFyY2hJdGVtKGl0ZW0pIHsKICBjb25zdCBza3UgPSBpdGVtLmdldEF0dHJpYnV0ZSgiZGF0YS1za3UiKSB8fCAiIjsKICBjb25zdCBsaW5rTm9kZSA9IGl0ZW0ucXVlcnlTZWxlY3RvcigiYS5wLWltZywgLnAtbmFtZSBhLCBhW2hyZWYqPScvaXRlbS5qZC5jb20vJ10iKTsKICBjb25zdCBsaW5rZWRVcmwgPSBub3JtYWxpemVQcm9kdWN0VXJsKGxpbmtOb2RlPy5ocmVmIHx8ICIiKTsKICBjb25zdCBpZCA9IHNrdSB8fCBleHRyYWN0UHJvZHVjdElkKGxpbmtlZFVybCk7CiAgLy8gVGhlIGN1cnJlbnQgSkQgbGF5b3V0IGRvZXMgbm90IGV4cG9zZSBhIG5vcm1hbCBwcm9kdWN0IGFuY2hvciBvbiBldmVyeQogIC8vIGNhcmQsIGJ1dCBpdCBkb2VzIGV4cG9zZSBkYXRhLXNrdS4gQnVpbGQgdGhlIGRldGFpbCBVUkwgZnJvbSB0aGF0IHZhbHVlLgogIGNvbnN0IHVybCA9IGlkID8gYGh0dHBzOi8vaXRlbS5qZC5jb20vJHtpZH0uaHRtbGAgOiBsaW5rZWRVcmw7CiAgY29uc3QgdGl0bGVOb2RlID0gaXRlbS5xdWVyeVNlbGVjdG9yKAogICAgIi5wLW5hbWUgZW0sIC5wLW5hbWUsIFtjbGFzcyo9J190aXRsZV8nXSwgW2NsYXNzKj0nX25hbWVfJ10sIFtjbGFzcyo9J19jYXJkXyddLCBbY2xhc3MqPSdfaW5mb18nXSwgLnAtaW1nIgogICk7CiAgY29uc3QgdGl0bGVDYW5kaWRhdGVzID0gWwogICAgdGl0bGVOb2RlPy50ZXh0Q29udGVudCwKICAgIC4uLlsuLi5pdGVtLnF1ZXJ5U2VsZWN0b3JBbGwoCiAgICAgICIucC1uYW1lIGVtLCAucC1uYW1lLCBbY2xhc3MqPSdfdGl0bGVfJ10sIFtjbGFzcyo9J19uYW1lXyddLCBbY2xhc3MqPSdfY2FyZF8nXSwgW2NsYXNzKj0nX2luZm9fJ10iCiAgICApXS5tYXAoKG5vZGUpID0+IG5vZGUudGV4dENvbnRlbnQpLAogICAgaXRlbS50ZXh0Q29udGVudAogIF0ubWFwKCh2YWx1ZSkgPT4gU3RyaW5nKHZhbHVlIHx8ICIiKS5yZXBsYWNlKC9ccysvZywgIiAiKS50cmltKCkpLmZpbHRlcihCb29sZWFuKTsKICBsZXQgdGl0bGUgPSB0aXRsZUNhbmRpZGF0ZXNbMF0gfHwgIiI7CiAgLy8gTmV3IGNhcmRzIG9mdGVuIHB1dCB0aGUgZGlzcGxheWVkIHByaWNlIGFmdGVyIHRoZSB0aXRsZSBpbiB0aGUgc2FtZSBub2RlLgogIHRpdGxlID0gdGl0bGUuc3BsaXQoL1vCpe+/pV0vKVswXS50cmltKCk7CiAgY29uc3QgcHJpY2UgPSBleHRyYWN0U2VhcmNoUHJpY2UoaXRlbSk7CgogIGlmICghaWQgfHwgIXVybCB8fCAhdGl0bGUgfHwgIU51bWJlci5pc0Zpbml0ZShwcmljZSkgfHwgcHJpY2UgPD0gMCkgcmV0dXJuIG51bGw7CiAgY29uc3QgYXR0cmlidXRlVGV4dCA9IHRpdGxlQ2FuZGlkYXRlcwogICAgLmZpbHRlcigoY2FuZGlkYXRlKSA9PiAvKOiii3zmlK9854mHfOeyknzotLR855O2fOWMhXznm5J8566xfG1nfOavq+WFi3xnfOWFi3xtbHzmr6vljYd8JSkvaS50ZXN0KGNhbmRpZGF0ZSkpCiAgICAuc2xpY2UoMCwgOCkKICAgIC5qb2luKCIgIik7CiAgcmV0dXJuIHsgaWQsIHVybCwgdGl0bGUsIHByaWNlLCBhdHRyaWJ1dGVzOiBleHRyYWN0UHJvZHVjdEF0dHJpYnV0ZXMoYXR0cmlidXRlVGV4dCB8fCB0aXRsZSkgfTsKfQoKZnVuY3Rpb24gZXh0cmFjdFNlYXJjaFByaWNlKGl0ZW0pIHsKICBjb25zdCBzZWxlY3RvcnMgPSBbCiAgICAiW2NsYXNzKj0nX3ByaWNlXyddIiwKICAgICIucC1wcmljZSAucHJpY2UiLAogICAgIi5wLXByaWNlIHN0cm9uZyIsCiAgICAiLnAtcHJpY2UiCiAgXTsKCiAgY29uc3QgcHJpY2VzID0gW107CiAgZm9yIChjb25zdCBzZWxlY3RvciBvZiBzZWxlY3RvcnMpIHsKICAgIGZvciAoY29uc3Qgbm9kZSBvZiBpdGVtLnF1ZXJ5U2VsZWN0b3JBbGwoc2VsZWN0b3IpKSB7CiAgICAgIGNvbnN0IHByaWNlID0gcGFyc2VQcmljZShub2RlLnRleHRDb250ZW50IHx8ICIiKTsKICAgICAgaWYgKE51bWJlci5pc0Zpbml0ZShwcmljZSkgJiYgcHJpY2UgPiAwKSBwcmljZXMucHVzaChwcmljZSk7CiAgICB9CiAgfQoKICByZXR1cm4gcHJpY2VzLmxlbmd0aCA/IE1hdGgubWluKC4uLnByaWNlcykgOiBudWxsOwp9CgpmdW5jdGlvbiBub3JtYWxpemVQcm9kdWN0VXJsKHZhbHVlKSB7CiAgdHJ5IHsKICAgIGNvbnN0IHVybCA9IG5ldyBVUkwodmFsdWUsIGxvY2F0aW9uLmhyZWYpOwogICAgaWYgKCF1cmwuaG9zdG5hbWUuZW5kc1dpdGgoImpkLmNvbSIpKSByZXR1cm4gIiI7CiAgICByZXR1cm4gdXJsLmhyZWY7CiAgfSBjYXRjaCB7CiAgICByZXR1cm4gIiI7CiAgfQp9CgpmdW5jdGlvbiBleHRyYWN0UHJvZHVjdElkKHVybCkgewogIGNvbnN0IG1hdGNoID0gdXJsLm1hdGNoKC9cL2l0ZW1cLmpkXC5jb21cLyhcZCspXC5odG1sLyk7CiAgcmV0dXJuIG1hdGNoPy5bMV0gfHwgIiI7Cn0KCmZ1bmN0aW9uIHBhcnNlUHJpY2UodGV4dCkgewogIGNvbnN0IG5vcm1hbGl6ZWQgPSB0ZXh0LnJlcGxhY2UoLywvZywgIiIpLnJlcGxhY2UoL1xzKy9nLCAiICIpOwogIGNvbnN0IG1hdGNoID0gbm9ybWFsaXplZC5tYXRjaCgvKD86wqV877+lKT9ccyooXGQrKD86XC5cZHsxLDJ9KT8pLyk7CiAgcmV0dXJuIG1hdGNoID8gTnVtYmVyKG1hdGNoWzFdKSA6IG51bGw7Cn0KCmZ1bmN0aW9uIGV4dHJhY3RQcm9kdWN0QXR0cmlidXRlcyh0aXRsZSkgewogIGNvbnN0IHRleHQgPSBTdHJpbmcodGl0bGUgfHwgIiIpOwogIGNvbnN0IGRvc2FnZUZvcm1zID0gWwogICAgIua7tOecvOa2siIsICLlj6PmnI3mtrIiLCAi5rSX55y85rayIiwgIuWHneiDtiIsICLog7blm4oiLCAi6L2v6IaPIiwgIuS5s+iGjyIsCiAgICAi5Za36Zu+IiwgIui0tOWJgiIsICLmoJMiLCAi6IacIiwgIueJhyIsICLkuLgiLCAi57KJIiwgIua2siIsICLotLQiCiAgXTsKICBjb25zdCBkb3NhZ2VGb3JtID0gZG9zYWdlRm9ybXMuZmluZCgoZm9ybSkgPT4gdGV4dC5pbmNsdWRlcyhmb3JtKSkgfHwgbnVsbDsKICBjb25zdCBzdHJlbmd0aE1hdGNoID0gZXh0cmFjdFBhY2thZ2VTdHJlbmd0aCh0ZXh0KTsKICBjb25zdCBwYWNrTWF0Y2ggPSB0ZXh0Lm1hdGNoKC8oXGQrKVxzKig/OuebknznrrEpKD866KOFfOWllyk/L2kpOwogIGNvbnN0IHVuaXRNYXRjaCA9IHRleHQubWF0Y2goLyg/OlwqfMOXfHgpXHMqKFxkKylccyoo5pSvfOeJh3znspJ86LS0fOiii3znk7Z85YyFKS9pKQogICAgfHwgdGV4dC5tYXRjaCgvKFxkKylccyoo5pSvfOeJh3znspJ86LS0fOiii3znk7Z85YyFKS9pKTsKICBjb25zdCB1bml0c1BlclBhY2sgPSB1bml0TWF0Y2ggPyBOdW1iZXIodW5pdE1hdGNoWzFdKSA6IG51bGw7CiAgY29uc3QgdW5pdFR5cGUgPSB1bml0TWF0Y2g/LlsyXSB8fCBudWxsOwoKICByZXR1cm4gewogICAgZG9zYWdlRm9ybSwKICAgIHN0cmVuZ3RoOiBzdHJlbmd0aE1hdGNoID8gYCR7c3RyZW5ndGhNYXRjaFsxXX0ke3N0cmVuZ3RoTWF0Y2hbMl19YCA6IG51bGwsCiAgICBwYWNrQ291bnQ6IHBhY2tNYXRjaCA/IE51bWJlcihwYWNrTWF0Y2hbMV0pIDogbnVsbCwKICAgIHVuaXRzUGVyUGFjaywKICAgIHVuaXRUeXBlLAogICAgdW5pdFNwZWM6IHVuaXRzUGVyUGFjayAmJiB1bml0VHlwZSA/IGAke3VuaXRzUGVyUGFja30ke3VuaXRUeXBlfWAgOiBudWxsCiAgfTsKfQoKZnVuY3Rpb24gZXh0cmFjdFBhY2thZ2VTdHJlbmd0aCh0ZXh0KSB7CiAgLy8g55m+5YiG5Y+36YCa5bi45p2l6Ieq4oCcMTAwJeato+WTgS/lpb3or4TigJ3nrYnljaHniYfokKXplIDmlofmoYjvvIzkuI3kvZzkuLrpu5jorqTliYLph4/op4TmoLzjgIIKICBjb25zdCBjYW5kaWRhdGVzID0gWy4uLnRleHQubWF0Y2hBbGwoLyhcZCsoPzpcLlxkKyk/KVxzKihtZ3zmr6vlhYt8Z3zlhYt8bWx85q+r5Y2HKS9naSldOwogIGlmICghY2FuZGlkYXRlcy5sZW5ndGgpIHJldHVybiBudWxsOwoKICBjb25zdCBwYWNrYWdlQ2FuZGlkYXRlID0gY2FuZGlkYXRlcy5maW5kKChtYXRjaCkgPT4gewogICAgY29uc3QgZW5kID0gbWF0Y2guaW5kZXggKyBtYXRjaFswXS5sZW5ndGg7CiAgICBjb25zdCBhZnRlciA9IHRleHQuc2xpY2UoZW5kLCBlbmQgKyAxMik7CiAgICByZXR1cm4gL15ccyooPzpcL1xzKig/Ouiii3zmlK9854mHfOeyknzotLR855O2fOWMhSl8WyrDl3hdXHMqXGQrXHMqKD866KKLfOaUr3zniYd857KSfOi0tHznk7Z85YyFKT8pL2kudGVzdChhZnRlcik7CiAgfSk7CiAgaWYgKHBhY2thZ2VDYW5kaWRhdGUpIHJldHVybiBwYWNrYWdlQ2FuZGlkYXRlOwoKICBjb25zdCBtZWFuaW5nZnVsQ2FuZGlkYXRlID0gY2FuZGlkYXRlcy5maW5kKChtYXRjaCkgPT4gewogICAgY29uc3QgYmVmb3JlID0gdGV4dC5zbGljZShNYXRoLm1heCgwLCBtYXRjaC5pbmRleCAtIDgpLCBtYXRjaC5pbmRleCk7CiAgICByZXR1cm4gIS8oPzrlkKt85ZCr5pyJfOaIkOWIhnzlkKvph4985q+P6KKL5ZCrfOavj+aUr+WQq3zmr4/niYflkKspXHMqJC9pLnRlc3QoYmVmb3JlKTsKICB9KTsKICByZXR1cm4gbWVhbmluZ2Z1bENhbmRpZGF0ZSB8fCBjYW5kaWRhdGVzWzBdOwp9Cg==
+chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === "GO_TO_SEARCH_PAGE") {
+    goToSearchPage(Number(message.page))
+      .then(sendResponse)
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
+    return true;
+  }
+
+  if (message?.type !== "READ_SEARCH_RESULTS") return;
+
+  if (message.platform && message.platform !== "jd") {
+    sendResponse({ error: `${message.platform}页面采集适配器尚未接入` });
+    return true;
+  }
+
+  readJdSearchResults(Number(message.expectedPage) || null)
+    .then(sendResponse)
+    .catch((error) => sendResponse({ error: error.message }));
+
+  return true;
+});
+
+async function readJdSearchResults(expectedPage = null) {
+  await waitForSearchResults(expectedPage);
+  const items = [...document.querySelectorAll("[data-sku], li.gl-item, .gl-item")];
+  const seen = new Set();
+  const products = [];
+
+  for (const item of items) {
+    const product = parseSearchItem(item);
+    if (!product || seen.has(product.id)) continue;
+    seen.add(product.id);
+    products.push(product);
+  }
+
+  return { products };
+}
+
+async function goToSearchPage(page) {
+  if (!Number.isInteger(page) || page < 1) throw new Error("无效的京东页码");
+  if (getCurrentSearchPage() === page) return { ok: true, page };
+
+  const input = await waitForPaginationInput();
+  if (!input) throw new Error("未找到京东分页输入框");
+
+  const beforeIds = getSearchItemIds();
+  input.focus();
+  input.value = String(page);
+  input.dispatchEvent(new Event("input", { bubbles: true }));
+  input.dispatchEvent(new Event("change", { bubbles: true }));
+
+  const container = input.closest(".p-skip") || input.parentElement;
+  const confirmButton = container?.querySelector(".btn-default, .btn, button");
+  if (confirmButton) {
+    confirmButton.click();
+  } else {
+    input.dispatchEvent(new KeyboardEvent("keydown", {
+      key: "Enter",
+      code: "Enter",
+      keyCode: 13,
+      which: 13,
+      bubbles: true
+    }));
+  }
+
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    const currentPage = getCurrentSearchPage();
+    const currentIds = getSearchItemIds();
+    if (currentPage === page && currentIds.length) return { ok: true, page };
+    if (currentIds.length && currentIds.join(",") !== beforeIds.join(",")) {
+      return { ok: true, page: currentPage || page };
+    }
+    await new Promise((resolve) => setTimeout(resolve, 150));
+  }
+
+  throw new Error(`京东第 ${page} 页加载超时`);
+}
+
+async function waitForPaginationInput() {
+  const deadline = Date.now() + 10000;
+  while (Date.now() < deadline) {
+    const input = findPaginationInput();
+    if (input) return input;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  return null;
+}
+
+function findPaginationInput() {
+  const candidates = [...document.querySelectorAll(
+    "#J_bottomPage input, #J_topPage input, .p-skip input, input.input-txt, input"
+  )];
+  return candidates.find((input) => {
+    const text = [
+      input.className,
+      input.parentElement?.textContent,
+      input.parentElement?.parentElement?.textContent
+    ].join(" ");
+    return /到第|页/.test(text) || /input-txt|p-skip/.test(String(input.className));
+  }) || null;
+}
+
+function getCurrentSearchPage() {
+  const current = document.querySelector(
+    "#J_bottomPage .p-num .curr, #J_topPage .p-num .curr, .p-num .curr, .p-num a.curr, .p-num b.curr"
+  );
+  const page = Number(current?.textContent?.trim());
+  return Number.isInteger(page) && page > 0 ? page : null;
+}
+
+function getSearchItemIds() {
+  return [...document.querySelectorAll("[data-sku], li.gl-item, .gl-item")]
+    .map((item) => item.getAttribute("data-sku") || "")
+    .filter(Boolean);
+}
+
+async function waitForSearchResults(expectedPage = null) {
+  const deadline = Date.now() + 10000;
+  const fallbackDeadline = Date.now() + 2500;
+  while (Date.now() < deadline) {
+    const hasItems = document.querySelector("li.gl-item, .gl-item, [data-sku]");
+    if (hasItems && (!expectedPage || getCurrentSearchPage() === expectedPage)) {
+      return;
+    }
+    if (hasItems && Date.now() >= fallbackDeadline) return;
+    await new Promise((resolve) => setTimeout(resolve, 200));
+  }
+  throw new Error("京东搜索结果加载超时");
+}
+
+function parseSearchItem(item) {
+  const sku = item.getAttribute("data-sku") || "";
+  const linkNode = item.querySelector("a.p-img, .p-name a, a[href*='/item.jd.com/']");
+  const linkedUrl = normalizeProductUrl(linkNode?.href || "");
+  const id = sku || extractProductId(linkedUrl);
+  // The current JD layout does not expose a normal product anchor on every
+  // card, but it does expose data-sku. Build the detail URL from that value.
+  const url = id ? `https://item.jd.com/${id}.html` : linkedUrl;
+  const titleNode = item.querySelector(
+    ".p-name em, .p-name, [class*='_title_'], [class*='_name_'], [class*='_card_'], [class*='_info_'], .p-img"
+  );
+  const titleCandidates = [
+    titleNode?.textContent,
+    ...[...item.querySelectorAll(
+      ".p-name em, .p-name, [class*='_title_'], [class*='_name_'], [class*='_card_'], [class*='_info_']"
+    )].map((node) => node.textContent),
+    item.textContent
+  ].map((value) => String(value || "").replace(/\s+/g, " ").trim()).filter(Boolean);
+  let title = titleCandidates[0] || "";
+  // New cards often put the displayed price after the title in the same node.
+  title = title.split(/[¥￥]/)[0].trim();
+  const price = extractSearchPrice(item);
+
+  if (!id || !url || !title || !Number.isFinite(price) || price <= 0) return null;
+  const attributeText = titleCandidates
+    .filter((candidate) => /(袋|支|片|粒|贴|瓶|包|盒|箱|mg|毫克|g|克|ml|毫升|%)/i.test(candidate))
+    .slice(0, 8)
+    .join(" ");
+  return { id, url, title, price, attributes: extractProductAttributes(attributeText || title) };
+}
+
+function extractSearchPrice(item) {
+  const selectors = [
+    "[class*='_price_']",
+    ".p-price .price",
+    ".p-price strong",
+    ".p-price"
+  ];
+
+  const prices = [];
+  for (const selector of selectors) {
+    for (const node of item.querySelectorAll(selector)) {
+      const price = parsePrice(node.textContent || "");
+      if (Number.isFinite(price) && price > 0) prices.push(price);
+    }
+  }
+
+  return prices.length ? Math.min(...prices) : null;
+}
+
+function normalizeProductUrl(value) {
+  try {
+    const url = new URL(value, location.href);
+    if (!url.hostname.endsWith("jd.com")) return "";
+    return url.href;
+  } catch {
+    return "";
+  }
+}
+
+function extractProductId(url) {
+  const match = url.match(/\/item\.jd\.com\/(\d+)\.html/);
+  return match?.[1] || "";
+}
+
+function parsePrice(text) {
+  const normalized = text.replace(/,/g, "").replace(/\s+/g, " ");
+  const match = normalized.match(/(?:¥|￥)?\s*(\d+(?:\.\d{1,2})?)/);
+  return match ? Number(match[1]) : null;
+}
+
+function extractProductAttributes(title) {
+  const text = String(title || "");
+  const dosageForms = [
+    "滴眼液", "口服液", "洗眼液", "凝胶", "胶囊", "软膏", "乳膏",
+    "喷雾", "贴剂", "栓", "膜", "片", "丸", "粉", "液", "贴"
+  ];
+  const dosageForm = dosageForms.find((form) => text.includes(form)) || null;
+  const strengthMatch = extractPackageStrength(text);
+  const packMatch = text.match(/(\d+)\s*(?:盒|箱)(?:装|套)?/i);
+  const unitMatch = text.match(/(?:\*|×|x)\s*(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i)
+    || text.match(/(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i);
+  const unitsPerPack = unitMatch ? Number(unitMatch[1]) : null;
+  const unitType = unitMatch?.[2] || null;
+
+  return {
+    dosageForm,
+    strength: strengthMatch ? `${strengthMatch[1]}${strengthMatch[2]}` : null,
+    packCount: packMatch ? Number(packMatch[1]) : null,
+    unitsPerPack,
+    unitType,
+    unitSpec: unitsPerPack && unitType ? `${unitsPerPack}${unitType}` : null
+  };
+}
+
+function extractPackageStrength(text) {
+  // 百分号通常来自“100%正品/好评”等卡片营销文案，不作为默认剂量规格。
+  const candidates = [...text.matchAll(/(\d+(?:\.\d+)?)\s*(mg|毫克|g|克|ml|毫升)/gi)];
+  if (!candidates.length) return null;
+
+  const packageCandidate = candidates.find((match) => {
+    const end = match.index + match[0].length;
+    const after = text.slice(end, end + 12);
+    return /^\s*(?:\/\s*(?:袋|支|片|粒|贴|瓶|包)|[*×x]\s*\d+\s*(?:袋|支|片|粒|贴|瓶|包)?)/i.test(after);
+  });
+  if (packageCandidate) return packageCandidate;
+
+  const meaningfulCandidate = candidates.find((match) => {
+    const before = text.slice(Math.max(0, match.index - 8), match.index);
+    return !/(?:含|含有|成分|含量|每袋含|每支含|每片含)\s*$/i.test(before);
+  });
+  return meaningfulCandidate || candidates[0];
+}
