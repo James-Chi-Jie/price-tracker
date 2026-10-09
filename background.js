@@ -1,4 +1,4 @@
-importScripts("platforms/jd.js", "platforms/tmall.js");
+importScripts("platforms/jd.js", "platforms/tmall.js", "platforms/pdd.js");
 
 const ALARM_NAME = "jd-price-monitor";
 const DEFAULT_INTERVAL_MINUTES = 30;
