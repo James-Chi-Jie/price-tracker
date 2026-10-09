@@ -12,6 +12,7 @@ const thresholdsEl = document.querySelector("#thresholds");
 const thresholdHintEl = document.querySelector("#threshold-hint");
 
 let draft = null;
+const PLATFORM_LABELS = { jd: "京东", tmall: "天猫", pdd: "拼多多" };
 
 init();
 
@@ -29,7 +30,8 @@ async function init() {
     : draft.pagesLoaded
       ? `　已合并前 ${draft.pagesLoaded} 页`
       : "";
-  summaryEl.textContent = `产品名：${draft.keyword}　去重后共 ${draft.products.length} 个结果${pageStatsLabel}`;
+  const platformName = PLATFORM_LABELS[draft.platform || "jd"] || "商品平台";
+  summaryEl.textContent = `平台：${platformName}　产品名：${draft.keyword}　去重后共 ${draft.products.length} 个结果${pageStatsLabel}`;
   renderOptions();
   updateOptionAvailability();
   renderThresholds();
