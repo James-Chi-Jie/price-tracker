@@ -22,7 +22,10 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
         : Promise.reject(new Error(`${platform}页面采集适配器尚未接入`));
   readTask
     .then(sendResponse)
-    .catch((error) => sendResponse({ error: error.message }));
+    .catch((error) => sendResponse({
+      error: error.message,
+      pageDiagnostics: collectPageDiagnostics(platform)
+    }));
 
   return true;
 });
@@ -40,22 +43,54 @@ async function readJdSearchResults(expectedPage = null) {
     products.push(product);
   }
 
-  return { products };
+  return { products, pageDiagnostics: collectPageDiagnostics("jd") };
 }
 
 async function readTmallSearchResults(_expectedPage = null, platform = "tmall") {
   await waitForTmallSearchResults(platform);
   const products = [];
+  const priceDiagnostics = [];
   const seen = new Set();
 
   for (const item of findTmallSearchItems()) {
-    const product = parseTmallSearchItem(item);
+    const parsed = parseTmallSearchItem(item, platform === "tmall");
+    const product = parsed?.product;
     if (!product || seen.has(product.id)) continue;
     seen.add(product.id);
     products.push(product);
+    if (parsed.priceDiagnostic) priceDiagnostics.push(parsed.priceDiagnostic);
   }
 
-  return { products };
+  return {
+    products,
+    pageUrl: `${location.origin}${location.pathname}`,
+    pageNumber: Number(_expectedPage) || null,
+    pageDiagnostics: collectPageDiagnostics(platform),
+    ...(platform === "tmall" ? { priceDiagnostics } : {})
+  };
+}
+
+function collectPageDiagnostics(platform) {
+  const bodyText = String(document.body?.innerText || "").slice(0, 5000);
+  const pageUrl = `${location.origin}${location.pathname}`;
+  const selectors = platform === "jd"
+    ? ["[data-sku]", "li.gl-item", ".gl-item", "#J_bottomPage input", ".p-num"]
+    : ["[data-item-id]", "[class*='doubleCardWrapper']", "[class*='itemWrapper']", "a[href*='item.taobao.com']", "a[href*='detail.tmall.com']"];
+  const selectorCounts = Object.fromEntries(selectors.map((selector) => [
+    selector,
+    document.querySelectorAll(selector).length
+  ]));
+  return {
+    platform,
+    pageUrl,
+    title: String(document.title || "").slice(0, 200),
+    selectorCounts,
+    signals: {
+      login: /(?:请登录|登录后|login)/i.test(bodyText),
+      verification: /(?:验证码|安全验证|滑块验证|访问受限|captcha|robot)/i.test(bodyText),
+      noResults: /(?:没有找到|暂无相关|无搜索结果|未找到相关)/i.test(bodyText)
+    }
+  };
 }
 
 function findTmallSearchItems() {
@@ -85,7 +120,7 @@ function findTmallSearchItems() {
   )];
 }
 
-function parseTmallSearchItem(item) {
+function parseTmallSearchItem(item, includePriceDiagnostic = false) {
   const linkNode = findTmallProductLink(item) || (item.matches?.("a") ? item : null);
   const linkedUrl = normalizeTmallProductUrl(linkNode?.href || "");
   const id = item.getAttribute?.("data-item-id")
@@ -100,15 +135,34 @@ function parseTmallSearchItem(item) {
     cardText
   ].map((value) => String(value || "").replace(/\s+/g, " ").trim()).filter(Boolean);
   const title = (titleCandidates[0] || "").split(/[¥￥]/)[0].trim();
-  const price = extractTmallSearchPrice(item, cardText);
+  const priceResult = extractTmallSearchPrice(item, cardText);
+  const price = priceResult.price;
 
   if (!id || !url || !title || !Number.isFinite(price) || price <= 0) return null;
-  return {
+  const product = {
     id: String(id),
     url,
     title,
     price,
     attributes: extractProductAttributes(title)
+  };
+  return {
+    product,
+    priceDiagnostic: includePriceDiagnostic
+      ? {
+          id: String(id),
+          skuId: (() => {
+            try { return new URL(linkedUrl).searchParams.get("skuId") || ""; }
+            catch { return ""; }
+          })(),
+          title,
+          selectedPrice: price,
+          itemClass: String(item.className || "").slice(0, 160),
+          itemTag: item.tagName || "",
+          cardText: cardText.slice(0, 500),
+          candidates: priceResult.candidates
+        }
+      : null
   };
 }
 
@@ -120,15 +174,53 @@ function findTmallProductLink(item) {
 
 function extractTmallSearchPrice(item, fallbackText = "") {
   const values = [];
-  for (const node of item.querySelectorAll?.(
-    "[class*='priceInt'], [class*='price'], [class*='Price'], [data-price]"
-  ) || []) {
-    const price = parsePrice(node.textContent || node.getAttribute?.("data-price") || "");
-    if (Number.isFinite(price) && price > 0) values.push(price);
+  const selectors = ["[class*='priceInt']", "[class*='price']", "[class*='Price']", "[data-price]"];
+  for (const node of item.querySelectorAll?.(selectors.join(", ")) || []) {
+    const text = String(node.textContent || "").replace(/\s+/g, " ").trim().slice(0, 120);
+    const dataPrice = String(node.getAttribute?.("data-price") || "").slice(0, 80);
+    const price = parsePrice(text || dataPrice);
+    const rect = node.getBoundingClientRect();
+    const visible = isTmallPriceNodeVisible(node, rect);
+    const candidate = {
+      price: Number.isFinite(price) && price > 0 ? price : null,
+      text,
+      dataPrice,
+      matchedSelectors: selectors.filter((selector) => node.matches?.(selector)),
+      className: String(node.className?.baseVal || node.className || "").slice(0, 160),
+      tag: node.tagName || "",
+      parentClass: String(node.parentElement?.className?.baseVal || node.parentElement?.className || "").slice(0, 160),
+      visible,
+      width: Math.round(rect.width),
+      height: Math.round(rect.height),
+      ariaHidden: node.getAttribute?.("aria-hidden") || "",
+      isPriceFragment: /price(?:Int|Float)/i.test(String(node.className?.baseVal || node.className || ""))
+    };
+    values.push(candidate);
   }
-  if (values.length) return Math.min(...values);
+  // Taobao/Tmall render decimal prices as separate priceInt/priceFloat nodes.
+  // A fragment such as ".03" must not be parsed as an independent ¥3 price.
+  const validValues = values.filter((candidate) =>
+    Number.isFinite(candidate.price) && candidate.price > 0 && !candidate.isPriceFragment
+  );
+  if (validValues.length) {
+    const selected = validValues.find((candidate) => /\binnerPriceWrapper(?:--|\b)/i.test(candidate.className))
+      || validValues.reduce((lowest, candidate) => candidate.price < lowest.price ? candidate : lowest);
+    return { price: selected.price, candidates: values };
+  }
   const currencyMatch = fallbackText.replace(/,/g, "").match(/[¥￥]\s*(\d+(?:\.\d{1,2})?)/);
-  return currencyMatch ? Number(currencyMatch[1]) : parsePrice(fallbackText);
+  const fallbackPrice = currencyMatch ? Number(currencyMatch[1]) : parsePrice(fallbackText);
+  return { price: fallbackPrice, candidates: values };
+}
+
+function isTmallPriceNodeVisible(node, rect) {
+  if (!node.getClientRects().length || rect.width <= 0 || rect.height <= 0) return false;
+  for (let current = node; current && current.nodeType === Node.ELEMENT_NODE; current = current.parentElement) {
+    const style = getComputedStyle(current);
+    if (style.display === "none" || style.visibility === "hidden" || style.visibility === "collapse" || Number(style.opacity) === 0) {
+      return false;
+    }
+  }
+  return true;
 }
 
 function normalizeTmallProductUrl(value) {
@@ -339,8 +431,16 @@ function extractProductAttributes(title) {
   const dosageForm = dosageForms.find((form) => text.includes(form)) || null;
   const strengthMatch = extractPackageStrength(text);
   const packMatch = text.match(/(\d+)\s*(?:盒|箱)(?:装|套)?/i);
-  const unitMatch = text.match(/(?:\*|×|x)\s*(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i)
-    || text.match(/(\d+)\s*(支|片|粒|贴|袋|瓶|包)/i);
+  const unitCandidates = [...text.matchAll(/(?:(?:\*|×|x)\s*)?(\d+)\s*(支|片|粒|贴|袋|瓶|包|枚|丸)/gi)];
+  const allowedUnitsByDosageForm = {
+    栓: ["支", "粒", "枚"],
+    片: ["片"],
+    胶囊: ["粒"],
+    丸: ["丸", "粒"],
+    粉: ["袋", "包"]
+  };
+  const allowedUnits = allowedUnitsByDosageForm[dosageForm];
+  const unitMatch = unitCandidates.find((match) => !allowedUnits || allowedUnits.includes(match[2])) || null;
   const unitsPerPack = unitMatch ? Number(unitMatch[1]) : null;
   const unitType = unitMatch?.[2] || null;
 

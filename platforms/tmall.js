@@ -8,6 +8,7 @@ self.PriceAdapters.tmall = {
   buildSearchUrl(keyword, page = 1) {
     const url = new URL("https://list.tmall.com/search_product.htm");
     url.searchParams.set("q", keyword);
+    url.searchParams.set("sort", "price-asc");
     const pageNumber = Math.max(1, Number(page) || 1);
     if (pageNumber > 1) {
       // 天猫入口常会把 page 参数丢给 s.taobao.com；同时带上结果偏移量，避免重复返回第一页。

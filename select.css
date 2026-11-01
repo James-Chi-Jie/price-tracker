@@ -52,7 +52,9 @@ h2 { margin: 0 0 10px; font-size: 16px; }
 }
 .threshold-item input { margin-top: 0; }
 .option-group { margin-top: 14px; }
-.option-title { margin-bottom: 6px; font-weight: 600; }
+.option-heading { display: flex; align-items: center; justify-content: space-between; gap: 10px; margin-bottom: 6px; }
+.option-title { font-weight: 600; }
+.option-select-all { padding: 3px 9px; font-size: 12px; }
 .option-list { display: flex; flex-wrap: wrap; gap: 8px; }
 .option {
   display: inline-flex;

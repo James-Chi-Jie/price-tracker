@@ -31,7 +31,7 @@ async function init() {
       ? `　已合并前 ${draft.pagesLoaded} 页`
       : "";
   const platformName = PLATFORM_LABELS[draft.platform || "jd"] || "商品平台";
-  summaryEl.textContent = `平台：${platformName}　产品名：${draft.keyword}　去重后共 ${draft.products.length} 个结果${pageStatsLabel}`;
+  summaryEl.textContent = `平台：${platformName}　产品名：${draft.keyword}　扫描 ${draft.pageCount || 3} 页，去重后共 ${draft.products.length} 个结果${pageStatsLabel}`;
   renderOptions();
   updateOptionAvailability();
   renderThresholds();
@@ -61,11 +61,35 @@ function renderOptions() {
     });
 
     container.innerHTML = "";
+    const heading = document.createElement("div");
+    heading.className = "option-heading";
     const title = document.createElement("div");
     title.className = "option-title";
     title.textContent = values.length ? group.title : `${group.title}（本页未识别到）`;
-    container.appendChild(title);
+    heading.appendChild(title);
+    container.appendChild(heading);
     if (!values.length) continue;
+
+    const selectAllButton = document.createElement("button");
+    selectAllButton.type = "button";
+    selectAllButton.className = "option-select-all secondary";
+    selectAllButton.textContent = "全选";
+    selectAllButton.title = `全选当前可用的${group.title}选项`;
+    selectAllButton.addEventListener("click", () => {
+      let selectedCount = 0;
+      for (const checkbox of container.querySelectorAll(`input[data-filter-key="${group.key}"]`)) {
+        if (!checkbox.disabled || checkbox.checked) {
+          checkbox.checked = true;
+          selectedCount += 1;
+        }
+      }
+      updateOptionAvailability();
+      renderThresholds();
+      renderProducts();
+      updatePriceHighlights();
+      showMessage(`已全选${group.title}（${selectedCount} 项）`);
+    });
+    heading.appendChild(selectAllButton);
 
     const list = document.createElement("div");
     list.className = "option-list";

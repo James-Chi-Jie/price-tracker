@@ -8,6 +8,7 @@ self.PriceAdapters.taobao = {
   buildSearchUrl(keyword, page = 1) {
     const url = new URL("https://s.taobao.com/search");
     url.searchParams.set("q", keyword);
+    url.searchParams.set("sort", "price-asc");
     const pageNumber = Math.max(1, Number(page) || 1);
     if (pageNumber > 1) {
       url.searchParams.set("page", String(pageNumber));

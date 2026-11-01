@@ -3,17 +3,21 @@ importScripts("platforms/jd.js", "platforms/tmall.js", "platforms/taobao.js");
 const ALARM_NAME = "jd-price-monitor";
 const DEFAULT_INTERVAL_MINUTES = 30;
 const TAB_TIMEOUT_MS = 25000;
-const MAX_SEARCH_PAGES = 3;
+const DEFAULT_SEARCH_PAGES = 3;
+const MAX_SEARCH_PAGES = 20;
 const SEARCH_PAGE_DELAY_MS = 700;
 const TAB_MESSAGE_TIMEOUT_MS = 35000;
+const LOG_RETENTION_MS = 3 * 24 * 60 * 60 * 1000;
+const LOG_PRUNE_ALARM_NAME = "runtime-log-prune";
+const MAX_RUNTIME_LOG_ENTRIES = 3000;
 
 chrome.runtime.onInstalled.addListener(() => ensureAlarm());
 chrome.runtime.onStartup.addListener(() => ensureAlarm());
 ensureAlarm();
 
 chrome.alarms.onAlarm.addListener(async (alarm) => {
-  if (alarm.name !== ALARM_NAME) return;
-  await checkAllMonitors();
+  if (alarm.name === ALARM_NAME) await checkAllMonitors();
+  else if (alarm.name === LOG_PRUNE_ALARM_NAME) await pruneRuntimeLogs();
 });
 
 chrome.notifications.onClicked.addListener(async (notificationId) => {
@@ -27,7 +31,7 @@ chrome.notifications.onClicked.addListener(async (notificationId) => {
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "START_PRODUCT_SELECTION") {
-    startProductSelection(message.keyword, message.platform || "jd")
+    startProductSelection(message.keyword, message.platform || "jd", message.pageCount)
       .then((result) => {
         // 只返回结果和目标地址；商品选择页由 popup 在收到响应后打开，
         // 避免后台激活新标签页时提前关闭 popup 的消息通道。
@@ -57,7 +61,17 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type === "CHECK_ONE") {
     checkMonitor(message.id)
       .then((result) => sendResponse({ ok: true, result }))
-      .catch((error) => sendResponse({ ok: false, error: error.message }));
+      .catch(async (error) => {
+        const { monitors } = await chrome.storage.local.get({ monitors: [] });
+        const monitor = monitors.find((item) => item.id === message.id);
+        await appendRuntimeLog("monitor_check_failed", {
+          monitorId: message.id,
+          platform: monitor?.platform || "jd",
+          keyword: monitor?.keyword || "",
+          error: error.message
+        });
+        sendResponse({ ok: false, error: error.message });
+      });
     return true;
   }
 
@@ -65,6 +79,13 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
     chrome.storage.local.get({ monitors: [] }).then(({ monitors }) => {
       sendResponse({ ok: true, monitors });
     });
+    return true;
+  }
+
+  if (message?.type === "EXPORT_RUNTIME_LOGS") {
+    getRecentRuntimeLogs()
+      .then((logs) => sendResponse({ ok: true, logs, retentionDays: 3 }))
+      .catch((error) => sendResponse({ ok: false, error: error.message }));
     return true;
   }
 });
@@ -76,6 +97,38 @@ async function ensureAlarm() {
       delayInMinutes: DEFAULT_INTERVAL_MINUTES,
       periodInMinutes: DEFAULT_INTERVAL_MINUTES
     });
+  }
+  const pruneAlarm = await chrome.alarms.get(LOG_PRUNE_ALARM_NAME);
+  if (!pruneAlarm) {
+    await chrome.alarms.create(LOG_PRUNE_ALARM_NAME, {
+      delayInMinutes: 12 * 60,
+      periodInMinutes: 12 * 60
+    });
+  }
+  await pruneRuntimeLogs();
+}
+
+async function getRecentRuntimeLogs() {
+  const { runtimeLogs = [] } = await chrome.storage.local.get({ runtimeLogs: [] });
+  const cutoff = Date.now() - LOG_RETENTION_MS;
+  const recent = runtimeLogs.filter((entry) => Number(entry.timestamp) >= cutoff);
+  if (recent.length !== runtimeLogs.length) {
+    await chrome.storage.local.set({ runtimeLogs: recent });
+  }
+  return recent;
+}
+
+async function pruneRuntimeLogs() {
+  await getRecentRuntimeLogs();
+}
+
+async function appendRuntimeLog(event, details = {}) {
+  try {
+    const logs = await getRecentRuntimeLogs();
+    logs.push({ timestamp: Date.now(), event, ...details });
+    await chrome.storage.local.set({ runtimeLogs: logs.slice(-MAX_RUNTIME_LOG_ENTRIES) });
+  } catch (error) {
+    console.warn("Unable to persist runtime log", error);
   }
 }
 
@@ -89,25 +142,34 @@ async function checkAllMonitors() {
         lastCheckedAt: Date.now(),
         lastError: error.message
       });
+      await appendRuntimeLog("monitor_check_failed", {
+        monitorId: monitor.id,
+        platform: monitor.platform || "jd",
+        keyword: monitor.keyword || "",
+        error: error.message
+      });
     }
   }
 }
 
-async function startProductSelection(keyword, platform = "jd") {
+async function startProductSelection(keyword, platform = "jd", requestedPageCount = DEFAULT_SEARCH_PAGES) {
   const normalizedKeyword = String(keyword || "").trim();
   if (!normalizedKeyword) throw new Error("监控关键词不能为空");
   const adapter = getPlatformAdapter(platform);
+  const pageCount = normalizeSearchPageCount(requestedPageCount);
 
   await setSearchStatus({
     state: "searching",
     platform: adapter.id,
     keyword: normalizedKeyword,
     page: 0,
-    totalPages: MAX_SEARCH_PAGES,
+    totalPages: pageCount,
     pageStats: []
   });
   try {
-    const searchResult = await searchProducts(normalizedKeyword, adapter.id);
+    const searchResult = await searchProducts(normalizedKeyword, adapter.id, pageCount, {
+      detailedDiagnostics: adapter.id === "tmall"
+    });
     const products = searchResult.products;
     if (!products.length) {
       throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
@@ -117,6 +179,7 @@ async function startProductSelection(keyword, platform = "jd") {
       selectionDraft: {
         keyword: normalizedKeyword,
         platform: adapter.id,
+        pageCount,
         products,
         pagesLoaded: searchResult.pagesLoaded,
         pageStats: searchResult.pageStats,
@@ -128,8 +191,16 @@ async function startProductSelection(keyword, platform = "jd") {
       platform: adapter.id,
       keyword: normalizedKeyword,
       page: searchResult.pagesLoaded,
-      totalPages: MAX_SEARCH_PAGES,
+      totalPages: pageCount,
       count: products.length,
+      pageStats: searchResult.pageStats
+    });
+    await appendRuntimeLog("product_selection_completed", {
+      platform: adapter.id,
+      keyword: normalizedKeyword,
+      pageCount,
+      pagesLoaded: searchResult.pagesLoaded,
+      productCount: products.length,
       pageStats: searchResult.pageStats
     });
     return {
@@ -138,6 +209,12 @@ async function startProductSelection(keyword, platform = "jd") {
       pageStats: searchResult.pageStats
     };
   } catch (error) {
+    await appendRuntimeLog("product_selection_failed", {
+      platform: adapter.id,
+      keyword: normalizedKeyword,
+      pageCount,
+      error: error.message
+    });
     await setSearchStatus({
       state: "error",
       platform: adapter.id,
@@ -148,29 +225,43 @@ async function startProductSelection(keyword, platform = "jd") {
   }
 }
 
-async function searchProducts(keyword, platform = "jd") {
+async function searchProducts(keyword, platform = "jd", requestedPageCount = DEFAULT_SEARCH_PAGES, options = {}) {
   const adapter = getPlatformAdapter(platform);
+  const pageCount = normalizeSearchPageCount(requestedPageCount);
 
   const products = [];
   const seen = new Set();
   const pageStats = [];
-  const searchWindow = await chrome.windows.create({
-    url: adapter.buildSearchUrl(keyword, 1),
-    focused: false,
-    state: "minimized",
-    type: "popup"
+  const firstPageUrl = adapter.buildSearchUrl(keyword, 1);
+  let searchWindow = null;
+  let tabId = null;
+  let activePage = 0;
+  let lastPageDiagnostics = null;
+  await appendRuntimeLog("search_started", {
+    platform: adapter.id,
+    keyword,
+    pageCount,
+    searchUrl: firstPageUrl
   });
-  const tabId = searchWindow.tabs?.[0]?.id;
-  if (!tabId) throw new Error("无法创建后台搜索窗口");
   let pagesLoaded = 0;
   try {
-    for (let page = 1; page <= MAX_SEARCH_PAGES; page += 1) {
+    searchWindow = await chrome.windows.create({
+      url: firstPageUrl,
+      focused: false,
+      state: "minimized",
+      type: "popup"
+    });
+    tabId = searchWindow.tabs?.[0]?.id;
+    if (!tabId) throw new Error("无法创建后台搜索窗口");
+
+    for (let page = 1; page <= pageCount; page += 1) {
+      activePage = page;
       await setSearchStatus({
         state: "searching",
         platform: adapter.id,
         keyword,
         page,
-        totalPages: MAX_SEARCH_PAGES,
+        totalPages: pageCount,
         pagesLoaded,
         pageStats
       });
@@ -197,7 +288,16 @@ async function searchProducts(keyword, platform = "jd") {
         platform: adapter.id,
         expectedPage: page
       });
+      lastPageDiagnostics = response?.pageDiagnostics || null;
       if (!Array.isArray(response?.products)) {
+        await appendRuntimeLog("search_page_failed", {
+          platform: adapter.id,
+          keyword,
+          page,
+          pageCount,
+          error: response?.error || "页面没有返回商品列表",
+          pageDiagnostics: lastPageDiagnostics
+        });
         throw new Error(response?.error || `未能读取${adapter.name}第 ${page} 页搜索结果`);
       }
 
@@ -214,24 +314,83 @@ async function searchProducts(keyword, platform = "jd") {
       // 京东偶尔会把分页请求重定向回第一页；继续请求其余页，但不要把重复结果误当成新商品。
       if (page > 1 && pageProducts.length && newProducts === 0) {
         console.warn(`${adapter.name}第 ${page} 页返回了重复结果，可能触发了分页重定向或验证`);
+        await appendRuntimeLog("search_page_duplicate_results", {
+          platform: adapter.id,
+          keyword,
+          page,
+          pageCount,
+          received: pageProducts.length
+        });
       }
       pageStats.push({ page, received: pageProducts.length, newProducts });
+      await appendRuntimeLog("search_page_completed", {
+        platform: adapter.id,
+        keyword,
+        page,
+        pageCount,
+        received: pageProducts.length,
+        newProducts,
+        pageDiagnostics: lastPageDiagnostics,
+        sampleProducts: pageProducts.slice(0, 5).map(({ id, title, price }) => ({ id, title, price })),
+        ...(options.detailedDiagnostics && Array.isArray(response.priceDiagnostics)
+          ? { priceDiagnostics: response.priceDiagnostics }
+          : {})
+      });
       await setSearchStatus({
         state: "searching",
         platform: adapter.id,
         keyword,
         page,
-        totalPages: MAX_SEARCH_PAGES,
+        totalPages: pageCount,
         pagesLoaded,
         pageStats
       });
       if (!pageProducts.length) break;
-      if (page < MAX_SEARCH_PAGES) await sleep(SEARCH_PAGE_DELAY_MS);
+      if (page < pageCount) await sleep(SEARCH_PAGE_DELAY_MS);
     }
+    products.sort((left, right) => left.price - right.price);
+    await appendRuntimeLog("search_completed", {
+      platform: adapter.id,
+      keyword,
+      pageCount,
+      pagesLoaded,
+      productCount: products.length,
+      pageStats
+    });
     return { products, pagesLoaded, pageStats };
+  } catch (error) {
+    let tabState = null;
+    if (tabId) {
+      try {
+        const tab = await chrome.tabs.get(tabId);
+        tabState = {
+          url: tab.url ? `${new URL(tab.url).origin}${new URL(tab.url).pathname}` : "",
+          title: String(tab.title || "").slice(0, 200),
+          status: tab.status || ""
+        };
+      } catch {}
+    }
+    await appendRuntimeLog("search_failed", {
+      platform: adapter.id,
+      keyword,
+      page: activePage,
+      pageCount,
+      error: error.message,
+      tabState,
+      pageDiagnostics: lastPageDiagnostics
+    });
+    throw error;
   } finally {
-    await chrome.windows.remove(searchWindow.id).catch(() => {});
+    if (searchWindow?.id) await chrome.windows.remove(searchWindow.id).catch(() => {});
   }
+}
+
+function normalizeSearchPageCount(value) {
+  const pageCount = Number(value ?? DEFAULT_SEARCH_PAGES);
+  if (!Number.isInteger(pageCount) || pageCount < 1 || pageCount > MAX_SEARCH_PAGES) {
+    throw new Error(`扫描页数需为 1 到 ${MAX_SEARCH_PAGES} 页`);
+  }
+  return pageCount;
 }
 
 function sendTabMessage(tabId, message) {
@@ -281,6 +440,7 @@ async function createMonitorFromSelection(
   const monitor = {
     id: crypto.randomUUID(),
     platform: selectionDraft.platform || "jd",
+    pageCount: normalizeSearchPageCount(selectionDraft.pageCount),
     keyword: selectionDraft.keyword,
     threshold: normalizedThresholdRules.default,
     thresholdRules: normalizedThresholdRules,
@@ -295,10 +455,25 @@ async function createMonitorFromSelection(
   const { monitors } = await chrome.storage.local.get({ monitors: [] });
   monitors.push(monitor);
   await chrome.storage.local.set({ monitors, selectionDraft: null });
+  await appendRuntimeLog("monitor_created", {
+    monitorId: monitor.id,
+    platform: monitor.platform,
+    keyword: monitor.keyword,
+    pageCount: monitor.pageCount,
+    matchRule: monitor.matchRule,
+    thresholdRules: monitor.thresholdRules
+  });
   try {
     const result = await checkMonitor(monitor.id);
     return { monitor: result };
   } catch (error) {
+    await appendRuntimeLog("monitor_initial_check_failed", {
+      monitorId: monitor.id,
+      platform: monitor.platform,
+      keyword: monitor.keyword,
+      pageCount: monitor.pageCount,
+      error: error.message
+    });
     await updateMonitor(monitor.id, {
       lastCheckedAt: Date.now(),
       lastError: error.message
@@ -315,7 +490,8 @@ async function checkMonitor(id) {
   const adapter = getPlatformAdapter(monitor.platform || "jd");
   if (!monitor.keyword?.trim()) throw new Error("监控关键词不能为空");
 
-  const responseProducts = (await searchProducts(monitor.keyword.trim(), monitor.platform || "jd")).products;
+  const pageCount = normalizeSearchPageCount(monitor.pageCount);
+  const responseProducts = (await searchProducts(monitor.keyword.trim(), monitor.platform || "jd", pageCount)).products;
   if (!responseProducts.length) {
     throw new Error("未读取到商品结果，可能是页面未加载或触发了平台验证");
   }
@@ -334,9 +510,9 @@ async function checkMonitor(id) {
   if (!matchedProducts.length) {
     throw new Error(
       matchRule
-        ? "当前搜索结果前 3 页没有符合匹配规则的商品"
+        ? `当前搜索结果前 ${pageCount} 页没有符合匹配规则的商品`
         : selectedProducts.length
-        ? "选中的商品不在当前搜索结果前 3 页，暂时无法确认价格"
+        ? `选中的商品不在当前搜索结果前 ${pageCount} 页，暂时无法确认价格`
         : "未读取到商品结果，可能是页面未加载或触发了平台验证"
     );
   }
@@ -407,6 +583,16 @@ async function checkMonitor(id) {
     await notifyMatches(monitor, newlyMatched.sort((left, right) => left.comparisonPrice - right.comparisonPrice));
   }
 
+  await appendRuntimeLog("monitor_check_completed", {
+    monitorId: monitor.id,
+    platform: monitor.platform || "jd",
+    keyword: monitor.keyword,
+    pageCount,
+    matchedCount: matchedProducts.length,
+    eligibleCount: eligibleProducts.length,
+    newlyLowPriceCount: newlyMatched.length
+  });
+
   return { ...monitor, ...patch, notified: newlyMatched.length > 0 };
 }
 
@@ -425,6 +611,13 @@ async function notifyMatches(monitor, products) {
     iconUrl: "icon128.png",
     title: `${adapterName(monitor.platform)}低价提醒：${monitor.keyword}`,
     message: `${message}\n点击打开匹配的低价商品`
+  });
+  await appendRuntimeLog("low_price_notification_sent", {
+    monitorId: monitor.id,
+    platform: monitor.platform || "jd",
+    keyword: monitor.keyword,
+    productIds: visibleProducts.map((product) => product.id),
+    count: products.length
   });
 }
 

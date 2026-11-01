@@ -32,12 +32,20 @@ button.danger { background: #e5484d; }
 .message { min-height: 20px; color: #1677ff; }
 .monitor {
   margin: 8px 0;
-  padding: 10px;
   border: 1px solid #e2e2e2;
   border-radius: 8px;
   background: #fff;
+  overflow: hidden;
 }
-.title { margin: 0 0 5px; font-weight: 600; }
+.monitor-summary { display: flex; align-items: center; gap: 8px; padding: 10px; cursor: pointer; list-style: none; }
+.monitor-summary::-webkit-details-marker { display: none; }
+.monitor-summary::before { content: "▸"; color: #777; transition: transform .15s ease; }
+.monitor-details[open] > .monitor-summary::before { content: "▾"; }
+.monitor-summary-title { flex: 1; min-width: 0; font-weight: 600; overflow-wrap: anywhere; }
+.monitor-summary-meta { color: #777; font-size: 11px; white-space: nowrap; }
+.monitor-summary-meta.has-error { color: #c62828; }
+.monitor-content { padding: 0 10px 10px; }
+.monitor-content > p:first-child { margin-top: 0; }
 .scope { margin: 0 0 5px; color: #1677ff; font-size: 12px; }
 .products-summary { margin: 0 0 5px; color: #555; font-size: 12px; }
 .muted, .hint, .empty { color: #777; }

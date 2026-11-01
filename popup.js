@@ -1,16 +1,45 @@
 const form = document.querySelector("#monitor-form");
 const keywordInput = document.querySelector("#keyword");
 const platformInput = document.querySelector("#platform");
+const pageCountInput = document.querySelector("#page-count");
 const monitorsEl = document.querySelector("#monitors");
 const messageEl = document.querySelector("#message");
-const SEARCH_TIMEOUT_MS = 90000;
+const SEARCH_TIMEOUT_BASE_MS = 15000;
+const SEARCH_TIMEOUT_PER_PAGE_MS = 60000;
 const PLATFORM_LABELS = { jd: "京东", taobao: "淘宝", tmall: "天猫" };
+
+document.querySelector("#export-runtime-logs")?.addEventListener("click", async () => {
+  const result = await chrome.runtime.sendMessage({ type: "EXPORT_RUNTIME_LOGS" });
+  if (!result?.ok) {
+    showMessage(`导出日志失败：${result?.error || "未知错误"}`);
+    return;
+  }
+  const exportData = {
+    exportedAt: new Date().toISOString(),
+    retentionDays: result.retentionDays,
+    logs: result.logs
+  };
+  const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+    type: "application/json"
+  });
+  const objectUrl = URL.createObjectURL(blob);
+  const link = document.createElement("a");
+  link.href = objectUrl;
+  link.download = `price-tracker-runtime-logs-${Date.now()}.json`;
+  link.click();
+  setTimeout(() => URL.revokeObjectURL(objectUrl), 1000);
+  showMessage(`已导出 ${result.logs.length} 条运行日志（最近 3 天）`);
+});
 
 form.addEventListener("submit", async (event) => {
   event.preventDefault();
   const keyword = keywordInput.value.trim();
+  const pageCount = Number(pageCountInput.value);
 
   if (!keyword) return showMessage("请输入商品关键词");
+  if (!Number.isInteger(pageCount) || pageCount < 1 || pageCount > 20) {
+    return showMessage("扫描页数需为 1 到 20 页");
+  }
 
   const platformName = PLATFORM_LABELS[platformInput.value] || "商品平台";
   showMessage(`正在读取${platformName}搜索结果…`);
@@ -18,8 +47,9 @@ form.addEventListener("submit", async (event) => {
     const result = await sendMessageWithTimeout({
       type: "START_PRODUCT_SELECTION",
       keyword,
-      platform: platformInput.value
-    }, SEARCH_TIMEOUT_MS);
+      platform: platformInput.value,
+      pageCount
+    }, SEARCH_TIMEOUT_BASE_MS + SEARCH_TIMEOUT_PER_PAGE_MS * pageCount);
     if (result?.ok) {
       form.reset();
       showMessage("已打开商品选择页");
@@ -47,6 +77,10 @@ chrome.storage.onChanged.addListener((changes, areaName) => {
 
 async function render() {
   const { monitors } = await chrome.storage.local.get({ monitors: [] });
+  const openMonitorIds = new Set(
+    [...monitorsEl.querySelectorAll("article[data-monitor-id] details[open]")]
+      .map((card) => card.dataset.monitorId)
+  );
   monitorsEl.innerHTML = "";
 
   if (!monitors.length) {
@@ -57,6 +91,7 @@ async function render() {
   for (const monitor of monitors) {
     const card = document.createElement("article");
     card.className = "monitor";
+    card.dataset.monitorId = monitor.id;
     const lowestPrice = Number.isFinite(monitor.lowestPrice)
       ? `¥${monitor.lowestPrice.toFixed(2)}`
       : "未检查";
@@ -91,27 +126,45 @@ async function render() {
         + (exampleProducts.length > 2 ? "…" : "")
       : "";
     const latestProducts = getLatestProducts(monitor);
-    const latestProductLinks = latestProducts.length
-      ? `<details class="matches"><summary>查看 ${latestProducts.length} 个匹配商品</summary><ul>${latestProducts.map(renderProductLink).join("")}</ul></details>`
+    const lowPriceProducts = getLowPriceProducts(latestProducts, monitor);
+    const lowPriceLinks = lowPriceProducts.length
+      ? `<details class="matches low-price-matches" open><summary>低价商品链接（${lowPriceProducts.length}）</summary><ul>${lowPriceProducts.map(renderProductLink).join("")}</ul></details>`
+      : '<p class="muted">暂无低于目标价的商品链接</p>';
+    const allMatchedLinks = latestProducts.length
+      ? `<details class="matches"><summary>查看全部符合条件的商品（${latestProducts.length}）</summary><ul>${latestProducts.map(renderProductLink).join("")}</ul></details>`
       : '<p class="muted">暂无最近一次检查结果</p>';
     const targetSummary = renderTargetSummary(monitor);
+    const pageCount = Number(monitor.pageCount) || 3;
+    const lowPriceCount = Number(monitor.eligibleCount || 0);
+    const compactSummary = monitor.lastError
+      ? "最近检查失败"
+      : `${lowPriceCount} 个低价 · 最低 ${lowestPrice}`;
 
     card.innerHTML = `
-      <p class="title">${escapeHtml(platformName)}：${escapeHtml(monitor.keyword)}</p>
-      <p class="scope">${scope}</p>
-      ${selectedSummary ? `<p class="products-summary">${selectedSummary}</p>` : ""}
-      <p>目标（${basisLabels[matchRule?.priceBasis || "total"]}）：${targetSummary}　最低：${lowestPrice}</p>
-      <p>低价商品：${Number(monitor.eligibleCount || 0)} 个</p>
-      ${latestProductLinks}
-      ${monitor.missingSelectedCount ? `<p class="error">有 ${monitor.missingSelectedCount} 个商品暂不在搜索结果第一页</p>` : ""}
-      <p class="muted">上次检查：${escapeHtml(checked)}</p>
-      ${error}
-      <div class="actions">
-        <button data-action="check" data-id="${monitor.id}">立即检查</button>
-        <button data-action="export-xlsx" data-id="${monitor.id}">导出 Excel</button>
-        <button data-action="export-csv" data-id="${monitor.id}">导出 CSV</button>
-        <button class="danger" data-action="delete" data-id="${monitor.id}">删除</button>
-      </div>`;
+      <details class="monitor-details"${openMonitorIds.has(String(monitor.id)) ? " open" : ""}>
+        <summary class="monitor-summary">
+          <span class="monitor-summary-title">${escapeHtml(platformName)}：${escapeHtml(monitor.keyword)}</span>
+          <span class="monitor-summary-meta${monitor.lastError ? " has-error" : ""}">${escapeHtml(compactSummary)}</span>
+        </summary>
+        <div class="monitor-content">
+          <p class="scope">${scope}</p>
+          ${selectedSummary ? `<p class="products-summary">${selectedSummary}</p>` : ""}
+          <p>扫描页数：${pageCount} 页</p>
+          <p>目标（${basisLabels[matchRule?.priceBasis || "total"]}）：${targetSummary}　最低：${lowestPrice}</p>
+          <p>低价商品：${lowPriceCount} 个</p>
+          ${lowPriceLinks}
+          ${allMatchedLinks}
+          ${monitor.missingSelectedCount ? `<p class="error">有 ${monitor.missingSelectedCount} 个商品暂不在搜索结果第一页</p>` : ""}
+          <p class="muted">上次检查：${escapeHtml(checked)}</p>
+          ${error}
+          <div class="actions">
+            <button data-action="check" data-id="${monitor.id}">立即检查</button>
+            <button data-action="export-xlsx" data-id="${monitor.id}">导出 Excel</button>
+            <button data-action="export-csv" data-id="${monitor.id}">导出 CSV</button>
+            <button class="danger" data-action="delete" data-id="${monitor.id}">删除</button>
+          </div>
+        </div>
+      </details>`;
     monitorsEl.appendChild(card);
   }
 }
@@ -172,6 +225,23 @@ function getLatestProducts(monitor) {
   return Object.entries(monitor.matches || {}).map(([id, product]) => ({ id, ...product }));
 }
 
+function getLowPriceProducts(products, monitor) {
+  return products
+    .filter((product) => {
+      const comparisonPrice = Number(product.comparisonPrice);
+      const productThreshold = Number(product.threshold);
+      const monitorThreshold = Number(monitor.threshold);
+      const threshold = Number.isFinite(productThreshold) && productThreshold > 0
+        ? productThreshold
+        : monitorThreshold;
+      return Number.isFinite(comparisonPrice)
+        && Number.isFinite(threshold)
+        && threshold > 0
+        && comparisonPrice < threshold;
+    })
+    .sort((left, right) => Number(left.comparisonPrice) - Number(right.comparisonPrice));
+}
+
 function renderProductLink(product) {
   const comparison = Number.isFinite(product.comparisonPrice)
     ? `比较价 ¥${Number(product.comparisonPrice).toFixed(2)}`
@@ -208,18 +278,7 @@ async function exportMonitor(id, format = "xlsx") {
   const monitor = monitors.find((item) => item.id === id);
   if (!monitor) return showMessage("监控任务不存在");
   const latestProducts = getLatestProducts(monitor);
-  const products = latestProducts.filter((product) => {
-    const comparisonPrice = Number(product.comparisonPrice);
-    const productThreshold = Number(product.threshold);
-    const monitorThreshold = Number(monitor.threshold);
-    const threshold = Number.isFinite(productThreshold) && productThreshold > 0
-      ? productThreshold
-      : monitorThreshold;
-    return Number.isFinite(comparisonPrice)
-      && Number.isFinite(threshold)
-      && threshold > 0
-      && comparisonPrice < threshold;
-  });
+  const products = getLowPriceProducts(latestProducts, monitor);
   if (!products.length) return showMessage("暂无低于目标价格的商品");
 
   const priceBasis = monitor.matchRule?.priceBasis || "total";
